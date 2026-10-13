@@ -820,33 +820,33 @@
       },
       {
         id: 'en_translator',
-        name: '英文即時翻譯官 (English)',
-        era: '中英雙向互譯',
+        name: '中英互翻',
+        era: '雙向互譯',
         tag: 'builtin',
         color: 'from-blue-600 to-cyan-600',
         avatarBg: '#0284c7',
-        avatarText: 'EN',
-        status: '繁體中文 ⇄ English 即時雙向互譯，發訊息立刻翻譯！',
-        bio: '專業中英雙向口筆譯好友。輸入繁體中文立即翻成道地英文；輸入英文立即翻成優美繁體中文。',
-        coreThought: '精準、自然、道地的中英雙語轉換。',
+        avatarText: '英',
+        status: '繁體中文 ⇄ 英文 雙向互譯',
+        bio: '專業中英雙向口筆譯好友。輸入中文直接翻英文，輸入英文直接翻中文。',
+        coreThought: '精準、自然、道地的中英雙向互譯。',
         suggestions: ['很高興認識你，今天天氣真好！', 'Can you explain the main idea?', '我想學習英文寫作', '輸入 1 了解翻譯指引'],
-        firstMessage: 'Hello! 我是你的「英文即時翻譯官」！🔤\n\n【使用方式超簡單】：\n👉 傳「繁體中文」給我 ➔ 我會直接翻譯成道地「英文」\n👉 傳「English」給我 ➔ 我會直接翻譯成流暢「繁體中文」\n\n歡迎隨時傳任何單字、句子或段落給我翻譯喔！',
+        firstMessage: '你好！我是你的「中英互翻」小助手！🔤\n\n👉 傳中文給我 ➔ 直接翻譯成英文\n👉 傳英文給我 ➔ 直接翻譯成繁體中文\n\n歡迎隨時傳任何單字或句子給我喔！',
         isTranslator: true,
         translateType: 'en'
       },
       {
         id: 'ja_translator',
-        name: '日文即時翻譯官 (日本語)',
-        era: '中日雙向互譯',
+        name: '中日互翻',
+        era: '雙向互譯',
         tag: 'builtin',
         color: 'from-rose-500 to-pink-600',
         avatarBg: '#e11d48',
         avatarText: '日',
-        status: '繁體中文 ⇄ 日本語 即時雙向互譯，發訊息秒速翻譯！',
-        bio: '專業中日雙向口筆譯好友。輸入繁體中文立即翻成道地日文（含羅馬拼音或假名）；輸入日文立即翻成自然繁體中文。',
-        coreThought: '精準、自然、道地的中日雙語轉換。',
+        status: '繁體中文 ⇄ 日文 雙向互譯',
+        bio: '專業中日雙向口筆譯好友。輸入中文直接翻日文（附發音），輸入日文直接翻中文。',
+        coreThought: '精準、自然、道地的中日雙向互譯。',
         suggestions: ['今天下雨了，我想吃熱騰騰的拉麵', 'こんにちは！今日はいい天気ですね', '這句話日文怎麼說最自然？', '輸入 1 了解翻譯指引'],
-        firstMessage: 'こんにちは！我是你的「日文即時翻譯官」！🗾\n\n【使用方式超簡單】：\n👉 傳「繁體中文」給我 ➔ 我會直接翻譯成道地「日文」（附假名/說明）\n👉 傳「日本語」給我 ➔ 我會直接翻譯成流暢「繁體中文」\n\n歡迎隨時傳任何日常對話或文章給我翻譯喔！',
+        firstMessage: 'こんにちは！我是你的「中日互翻」小助手！🗾\n\n👉 傳中文給我 ➔ 直接翻譯成日文（附平假名/讀音）\n👉 傳日文給我 ➔ 直接翻譯成繁體中文\n\n歡迎隨時傳任何日文或中文給我喔！',
         isTranslator: true,
         translateType: 'ja'
       }
@@ -974,10 +974,16 @@
           // Purge removed legacy characters
           parsed = parsed.filter(c => !removedOldIds.includes(c.id));
 
-          // Ensure all new builtin characters exist
+          // Ensure all new builtin characters exist & sync latest names for translators
           DEFAULT_CHARACTERS.forEach(defChar => {
-            if (!parsed.some(c => c.id === defChar.id)) {
+            const existing = parsed.find(c => c.id === defChar.id);
+            if (!existing) {
               parsed.push(defChar);
+            } else if (defChar.id === 'en_translator' || defChar.id === 'ja_translator') {
+              existing.name = defChar.name;
+              existing.avatarText = defChar.avatarText;
+              existing.status = defChar.status;
+              existing.era = defChar.era;
             }
           });
           characters = parsed;
