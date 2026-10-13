@@ -712,7 +712,10 @@
   <!-- ==================== APPLICATION LOGIC SCRIPT ==================== -->
   <script>
     // --- 1. DEFAULT DATA & STATE ---
-    const SYSTEM_ROLE_TEMPLATE = `你是「Puti-AI 超時空LINE」的對話角色。你的目標是使用繁體中文，像在用 LINE 聊天一樣，以最親切、生動、自然的方式與使用者對話！
+    const SYSTEM_ROLE_TEMPLATE = `你是「Puti-AI 超時空LINE」的對話角色。你的目標是使用台灣標準「繁體中文（正體中文）」，像在用 LINE 聊天一樣，以最親切、生動、自然的方式與使用者對話！
+
+【語言與字體嚴格規範（最高優先級）】
+★ 必須 100% 使用「繁體中文（台灣正體字）」，絕對嚴禁輸出任何簡體中文字詞（例如：必须->必須、说->說、门->門、爱->愛、国->國）。請確保所有標點符號與用詞符合繁體中文習慣。
 
 【LINE 聊天角色扮演指南】
 1. 身份融入：完全融入所扮演角色的身份與性格。如果是童話角色（如松鼠先生、小兔子），請用活潑可愛、親切溫暖的口吻；如果是歷史人物，請展現該人物特有的時代感與個性；如果是課文人物，必須忠於課文的故事設定與喜怒哀樂。
@@ -774,46 +777,46 @@
         firstMessage: '哈哈！天上白玉京，十二樓五城。吾乃隴西李太白是也！後世朋友，見你神采奕奕，何不與我同飲一杯清茶，聊聊天地之大、詩賦之美？若要快問快答，輸入 1 看我生平，3 聞我名篇！'
       },
       {
-        id: 'curie',
-        name: '居禮夫人 (Marie)',
-        era: '近代科學',
+        id: 'sushi',
+        name: '蘇軾 (東坡居士)',
+        era: '北宋文豪',
         tag: 'builtin',
-        color: 'from-purple-600 to-pink-600',
-        avatarBg: '#9333ea',
-        avatarText: '居',
-        status: '生活對於任何人都非易事，我們必須有堅忍不拔的精神。',
-        bio: '波蘭裔法國籍物理學家、化學家，首位獲得諾貝爾獎的女性，更是史上唯一獲得兩座不同科學領域諾貝爾獎的大師。發現鐳與釙元素。',
-        coreThought: '無私奉獻於科學、放射性研究開拓、堅韌不拔。',
-        suggestions: ['提煉鐳元素有多辛苦？', '您遇到挫折時怎麼堅持下來的？', '輸入 4 科學趣聞', '輸入 5 思想精髓'],
-        firstMessage: '你好，我是瑪麗·居禮 (Marie Curie)。在科學探索的道路上，好奇心是我們最好的指針。很高興遇見熱愛學習的你，你想跟我聊聊實驗室的日子，還是如何面對人生挑戰呢？'
+        color: 'from-amber-600 to-orange-700',
+        avatarBg: '#c2410c',
+        avatarText: '蘇',
+        status: '竹杖芒鞋輕勝馬，誰怕？一蓑煙雨任平生。笑看人生！',
+        bio: '北宋大文豪、美食家、書法家，字子瞻，號東坡居士。「唐宋八大家」之一，生性曠達樂觀，代表作有《赤壁賦》、《水調歌頭》。',
+        coreThought: '曠達超然、物我兩忘、隨遇而安的人生智慧。',
+        suggestions: ['被貶官到那麼遠的地方，您怎麼還能笑得出來？', '東坡肉到底要怎麼煮才好吃？', '輸入 3 經典名言', '寫首撫慰挫折的詞'],
+        firstMessage: '哈哈！莫聽穿林打葉聲，何妨吟嘯且徐行！吾乃東坡居士蘇軾是也。人生何處不風雨？但只要心中豁達，處處皆是好風景！今天想同我聊詩詞、談美食，還是論人生逆境之解方？'
       },
       {
-        id: 'davinci',
-        name: '達文西 (Leonardo)',
-        era: '文藝復興',
+        id: 'laozi',
+        name: '老子 (李耳)',
+        era: '春秋哲人',
         tag: 'builtin',
-        color: 'from-orange-600 to-amber-700',
-        avatarBg: '#ea580c',
-        avatarText: '達',
-        status: '學習是唯一心靈永遠不會耗盡、永遠不會害怕的事情。',
-        bio: '義大利文藝復興全才，畫家、解剖學家、發明家、建築師、工程師。代表作有《蒙娜麗莎》、《最後的晚餐》。',
-        coreThought: '經驗主義、跨領域博雅、對自然萬物無窮的好奇。',
-        suggestions: ['蒙娜麗莎到底在笑什麼？', '您的飛行器草稿是怎麼想出來的？', '輸入 3 名言', '輸入 8 相關推薦'],
-        firstMessage: '嗨！我是李奧納多·達文西。我的手稿裡畫滿了鳥兒的翅膀、水流的漩渦和人體的骨骼。對我來說，藝術和科學是一體兩面。今天，你想和我一起觀察什麼有趣的秘密？'
+        color: 'from-emerald-700 to-teal-800',
+        avatarBg: '#0f766e',
+        avatarText: '老',
+        status: '道可道，非常道；名可名，非常名。無為而無不為。',
+        bio: '春秋時期大思想家，道家學派創始人，著有《道德經》。倡導順應自然、上善若水、清靜無為的處世哲學。',
+        coreThought: '道法自然、無為而治、上善若水、反璞歸真。',
+        suggestions: ['老子老師，什麼是「無為而治」？', '什麼叫做「上善若水」？', '輸入 1 了解生平', '輸入 5 思想精髓'],
+        firstMessage: '致虛極，守靜篤。吾乃老聃。天地萬物，各得其和。世人多奔忙於得失名利，汝今日前來，何妨靜下心來，與吾共探道法自然之妙？輸入 1~9，吾自隨緣而應。'
       },
       {
-        id: 'zheng_chenggong',
-        name: '鄭成功 (國姓爺)',
-        era: '明鄭台灣',
+        id: 'buddha',
+        name: '佛陀 (釋迦牟尼)',
+        era: '古印度覺者',
         tag: 'builtin',
-        color: 'from-red-600 to-rose-700',
-        avatarBg: '#e11d48',
-        avatarText: '鄭',
-        status: '開闢荊榛逐荷夷，十年始克復先基。忠烈千秋。',
-        bio: '明末清初軍事家、政治家，賜國姓朱，世稱「國姓爺」。率軍登陸台灣擊退荷蘭東印度公司，奠定台灣漢人社會體制與開發基礎。',
-        coreThought: '忠貞報國、海權戰略、屯田開疆。',
-        suggestions: ['當初渡過黑水溝來台灣有多艱險？', '面對荷蘭人的大砲船艦您怎麼戰勝的？', '輸入 2 豐功偉業', '輸入 7 爭議與評價'],
-        firstMessage: '吾乃延平王鄭成功。望向這片美麗之島「福爾摩沙」，當年將士浴血開拓之情景猶在眼前。後世學子，知曉台灣昔日之風雲變幻乎？吾願與汝暢談海疆風雲！'
+        color: 'from-yellow-500 to-amber-600',
+        avatarBg: '#b45309',
+        avatarText: '佛',
+        status: '慈悲喜捨，自淨其意。願一切眾生離苦得樂。',
+        bio: '古印度迦毗羅衛國王子，名悉達多·喬達摩。覺悟宇宙人生真相後創立佛教，遊化四方四十九年，宣說四聖諦、八正道與緣起中道。',
+        coreThought: '緣起性空、慈悲平等、正念自覺、離苦得樂。',
+        suggestions: ['佛陀，當我心情煩惱焦慮時該怎麼辦？', '什麼是真正的慈悲？', '輸入 3 經典教言', '輸入 9 人生啟示'],
+        firstMessage: '善哉，善男子、善女人。一切有為法，如夢幻泡影。心生種種法生，心滅種種法滅。汝心中若有困惑煩惱，不妨道來，吾願以正見與慈悲之光，與汝共享心靈之清淨自在。'
       },
       {
         id: 'en_translator',
@@ -963,21 +966,28 @@
 
       // Load Characters
       const savedChars = localStorage.getItem('puti_characters');
+      const removedOldIds = ['curie', 'davinci', 'zheng_chenggong'];
+
       if (savedChars) {
         try {
-          characters = JSON.parse(savedChars);
-          // Ensure new builtin translation friends exist even if user had older cache
+          let parsed = JSON.parse(savedChars);
+          // Purge removed legacy characters
+          parsed = parsed.filter(c => !removedOldIds.includes(c.id));
+
+          // Ensure all new builtin characters exist
           DEFAULT_CHARACTERS.forEach(defChar => {
-            if (!characters.some(c => c.id === defChar.id)) {
-              characters.push(defChar);
+            if (!parsed.some(c => c.id === defChar.id)) {
+              parsed.push(defChar);
             }
           });
+          characters = parsed;
         } catch(e) {
           characters = [...DEFAULT_CHARACTERS];
         }
       } else {
         characters = [...DEFAULT_CHARACTERS];
       }
+      saveStorage();
 
       // Load Histories
       const savedHistory = localStorage.getItem('puti_chat_histories');
@@ -1207,11 +1217,34 @@
       scrollToBottom();
     }
 
+    // Simplified to Traditional Chinese converter mapping for common characters
+    const S2T_MAP = {
+      '们':'們','说':'說','话':'話','这':'這','点':'點','么':'麼','什':'甚','个':'個','时':'時','会':'會',
+      '国':'國','学':'學','对':'對','后':'後','发':'發','来':'來','经':'經','过':'過','现':'現','样':'樣',
+      '从':'從','开':'開','头':'頭','给':'給','让':'讓','进':'進','还':'還','应':'應','该':'該','没':'沒',
+      '关':'關','系':'係','问':'問','题':'題','乐':'樂','爱':'愛','欢':'歡','见':'見','亲':'親','听':'聽',
+      '书':'書','长':'長','门':'門','间':'間','觉':'覺','动':'動','机':'機','两':'兩','业':'業','产':'產',
+      '师':'師','张':'張','写':'寫','读':'讀','语':'語','课':'課','汉':'漢','体':'體','认':'認','识':'識',
+      '难':'難','变':'變','总':'總','数':'數','带':'帶','带':'帶','风':'風','飞':'飛','马':'馬','鸟':'鳥',
+      '鱼':'魚','龙':'龍','电':'電','车':'車','东':'東','西':'西','南':'南','北':'北','钱':'錢','钟':'鐘',
+      '万':'萬','义':'義','礼':'禮','智':'智','信':'信','仁':'仁','德':'德','道':'道','佛':'佛','圣':'聖',
+      '贤':'賢','苏':'蘇','轼':'軾','坡':'坡','庄':'莊','孙':'孫','诸':'諸','葛':'葛','刘':'劉','备':'備',
+      '曹':'曹','操':'操','孙':'孫','权':'權','李':'李','白':'白','杜':'甫','居':'居','达':'達','芬':'芬',
+      '奇':'奇','郑':'鄭','功':'功','松':'松','鼠':'鼠','包':'包','麵':'麵','麵':'麵','面':'麵'
+    };
+
+    function toTraditionalChinese(str) {
+      if (!str) return '';
+      return str.split('').map(char => S2T_MAP[char] || char).join('');
+    }
+
     function formatAssistantMessage(text) {
       if (!text) return '';
-      // Trim leading/trailing newlines or spaces to prevent top empty gap
-      let sanitized = escapeHtml(text.trim());
-      // bold
+      // 1. Force convert any stray simplified Chinese characters to Traditional
+      let traditional = toTraditionalChinese(text.trim());
+      // 2. Escape HTML
+      let sanitized = escapeHtml(traditional);
+      // 3. Markdown bold styling
       sanitized = sanitized.replace(/\*\*(.*?)\*\*/g, '<strong class="font-bold text-slate-900">$1</strong>');
       return sanitized;
     }
