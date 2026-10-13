@@ -1243,15 +1243,31 @@ ${char.sourceText ? `【限定課文/文本參照（重要：請嚴格依據下�
 
     // --- 6. AI API CALL IMPLEMENTATIONS ---
     async function callGeminiAPI(apiKey, systemInstruction, history) {
-      const model = localStorage.getItem('puti_gemini_model') || 'gemini-1.5-flash';
-      const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
+      const cleanKey = apiKey ? apiKey.trim() : '';
+      if (!cleanKey) {
+        throw new Error('Gemini API Key 為空，請在右上角「設定 API Key」輸入');
+      }
+
+      let storedModel = localStorage.getItem('puti_gemini_model') || 'gemini-2.0-flash';
+      // Normalize model name (strip models/ prefix if present)
+      storedModel = storedModel.replace(/^models\//, '');
+
+      // List of candidate models for fallback
+      const candidateModels = [
+        storedModel,
+        'gemini-2.0-flash',
+        'gemini-1.5-flash',
+        'gemini-2.5-flash',
+        'gemini-1.5-pro'
+      ];
+      const uniqueModels = [...new Set(candidateModels.filter(Boolean))];
 
       const contents = history.map(item => ({
         role: item.role === 'user' ? 'user' : 'model',
         parts: [{ text: item.text }]
       }));
 
-      const body = {
+      const bodyPayload = {
         system_instruction: {
           parts: [{ text: systemInstruction }]
         },
@@ -1263,19 +1279,48 @@ ${char.sourceText ? `【限定課文/文本參照（重要：請嚴格依據下�
         }
       };
 
-      const res = await fetch(url, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(body)
-      });
+      let lastError = null;
 
-      if (!res.ok) {
-        const errorData = await res.json().catch(() => ({}));
-        throw new Error(errorData.error?.message || `HTTP ${res.status}`);
+      for (const m of uniqueModels) {
+        try {
+          // Attempt v1beta endpoint with x-goog-api-key header and query parameter fallback
+          const url = `https://generativelanguage.googleapis.com/v1beta/models/${m}:generateContent?key=${encodeURIComponent(cleanKey)}`;
+          
+          const res = await fetch(url, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(bodyPayload)
+          });
+
+          if (res.ok) {
+            const data = await res.json();
+            // Auto update stored model if fallback succeeded
+            if (m !== storedModel) {
+              console.log(`Auto updated Gemini model to ${m}`);
+              localStorage.setItem('puti_gemini_model', m);
+              const select = document.getElementById('geminiModelSelect');
+              if (select) select.value = m;
+            }
+            return data.candidates?.[0]?.content?.parts?.[0]?.text || '（思考中...）';
+          } else {
+            const errData = await res.json().catch(() => ({}));
+            lastError = errData.error?.message || `HTTP ${res.status}`;
+            console.warn(`Gemini model ${m} failed:`, lastError);
+
+            // If it's explicitly an invalid API key, don't loop endlessly through all models
+            if (lastError.includes('API key not valid') || res.status === 400 && lastError.includes('API key')) {
+              throw new Error(`Gemini API Key 無效 (${lastError})。請確認是否在 Google AI Studio 複製了完整的 Key (開頭為 AIzaSy...)，前後不可有空白`);
+            }
+          }
+        } catch (fetchErr) {
+          if (fetchErr.message && fetchErr.message.includes('API Key 無效')) throw fetchErr;
+          lastError = fetchErr.message;
+        }
       }
 
-      const data = await res.json();
-      return data.candidates?.[0]?.content?.parts?.[0]?.text || '（先賢沉思不語...）';
+      throw new Error(`Gemini 請求失敗：${lastError}。請點擊「設定 API Key」點擊「動態更新模型清單」測試連線`);
     }
 
     async function callGroqAPI(apiKey, systemInstruction, history) {
