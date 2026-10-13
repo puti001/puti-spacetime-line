@@ -204,12 +204,43 @@
 
         <!-- Chat Header Actions -->
         <div class="flex items-center space-x-1">
-          <!-- Font Size Adjuster (大屏教學模式) -->
-          <div class="relative flex items-center bg-slate-100 rounded-lg p-0.5 border border-slate-200" title="調整字體大小 (適合教室大屏投影)">
-            <button onclick="changeFontSize('sm')" id="fontBtn-sm" class="font-size-btn px-2 py-1 text-xs font-medium rounded text-slate-600 hover:bg-white transition" title="標準字體">A</button>
-            <button onclick="changeFontSize('md')" id="fontBtn-md" class="font-size-btn px-2 py-1 text-sm font-bold rounded text-slate-800 bg-white shadow-xs transition" title="中字體">A</button>
-            <button onclick="changeFontSize('lg')" id="fontBtn-lg" class="font-size-btn px-2 py-1 text-base font-bold rounded text-slate-600 hover:bg-white transition" title="大字體 (教學推薦)">A</button>
-            <button onclick="changeFontSize('xl')" id="fontBtn-xl" class="font-size-btn px-2 py-1 text-lg font-black rounded text-lineGreen hover:bg-white transition" title="特大字體 (教室後排看得清)">A+</button>
+          <!-- Font Size Dropdown (單顆 A 按鈕彈出選單，節省空間) -->
+          <div class="relative">
+            <button onclick="toggleFontDropdown()" id="btnFontDropdown" class="p-2 text-slate-500 hover:text-lineGreen hover:bg-emerald-50 rounded-lg transition flex items-center font-bold text-sm" title="字體大小調整 (大螢幕教學投影)">
+              <span class="border border-slate-300 rounded px-1.5 py-0.5 text-xs bg-slate-50">A</span>
+            </button>
+            
+            <!-- Font Dropdown Menu -->
+            <div id="fontDropdownMenu" class="absolute right-0 top-full mt-1 w-44 bg-white rounded-xl shadow-xl border border-slate-200 py-1.5 z-50 hidden msg-appear">
+              <div class="px-3 py-1 text-[11px] font-bold text-slate-400 border-b border-slate-100 flex items-center justify-between">
+                <span>教室字體縮放</span>
+                <span class="text-[10px] text-emerald-600 font-normal">大屏模式</span>
+              </div>
+              <button onclick="selectFontSize('sm')" class="font-opt-btn w-full px-3 py-1.5 text-left text-xs text-slate-700 hover:bg-emerald-50 flex items-center justify-between" data-size="sm">
+                <span>標準 (筆電/手機)</span>
+                <span class="text-[10px] text-slate-400">14px</span>
+              </button>
+              <button onclick="selectFontSize('md')" class="font-opt-btn w-full px-3 py-1.5 text-left text-sm text-slate-700 hover:bg-emerald-50 flex items-center justify-between" data-size="md">
+                <span>中等 (舒適閱讀)</span>
+                <span class="text-[10px] text-slate-400">16px</span>
+              </button>
+              <button onclick="selectFontSize('lg')" class="font-opt-btn w-full px-3 py-1.5 text-left text-base text-slate-700 hover:bg-emerald-50 flex items-center justify-between font-medium" data-size="lg">
+                <span>大字體 (一般投影)</span>
+                <span class="text-[10px] text-slate-400">18px</span>
+              </button>
+              <button onclick="selectFontSize('xl')" class="font-opt-btn w-full px-3 py-1.5 text-left text-lg text-slate-700 hover:bg-emerald-50 flex items-center justify-between font-bold" data-size="xl">
+                <span>特大字體 (大螢幕)</span>
+                <span class="text-[10px] text-slate-400">20px</span>
+              </button>
+              <button onclick="selectFontSize('2xl')" class="font-opt-btn w-full px-3 py-1.5 text-left text-xl text-slate-800 hover:bg-emerald-50 flex items-center justify-between font-bold" data-size="2xl">
+                <span>超大 (教室中後排)</span>
+                <span class="text-[10px] text-emerald-600 font-bold">+1級</span>
+              </button>
+              <button onclick="selectFontSize('3xl')" class="font-opt-btn w-full px-3 py-1.5 text-left text-2xl text-slate-900 hover:bg-emerald-50 flex items-center justify-between font-black" data-size="3xl">
+                <span>巨型 (教室最後一排)</span>
+                <span class="text-[10px] text-emerald-600 font-bold">+2級</span>
+              </button>
+            </div>
           </div>
 
           <!-- Clear Chat Messages -->
@@ -793,34 +824,50 @@
     let currentCategory = 'all';
     let speechEnabled = false;
     let isGenerating = false;
-    let currentFontSize = 'md'; // 'sm' | 'md' | 'lg' | 'xl'
+    let currentFontSize = 'md'; // 'sm' | 'md' | 'lg' | 'xl' | '2xl' | '3xl'
 
     function getBubbleFontClass() {
       switch (currentFontSize) {
         case 'sm': return 'text-xs md:text-sm';
         case 'md': return 'text-sm md:text-base';
         case 'lg': return 'text-base md:text-lg leading-relaxed';
-        case 'xl': return 'text-lg md:text-xl font-medium leading-loose';
+        case 'xl': return 'text-lg md:text-xl font-medium leading-relaxed';
+        case '2xl': return 'text-xl md:text-2xl font-bold leading-loose';
+        case '3xl': return 'text-2xl md:text-3xl font-bold leading-loose';
         default: return 'text-sm md:text-base';
       }
     }
 
-    function changeFontSize(size) {
+    function toggleFontDropdown() {
+      const menu = document.getElementById('fontDropdownMenu');
+      if (menu) menu.classList.toggle('hidden');
+    }
+
+    // Close font dropdown when clicking outside
+    document.addEventListener('click', (e) => {
+      const btn = document.getElementById('btnFontDropdown');
+      const menu = document.getElementById('fontDropdownMenu');
+      if (btn && menu && !btn.contains(e.target) && !menu.contains(e.target)) {
+        menu.classList.add('hidden');
+      }
+    });
+
+    function selectFontSize(size) {
       currentFontSize = size;
       localStorage.setItem('puti_chat_font_size', size);
       updateFontSizeUI();
       renderMessages();
+      toggleFontDropdown();
     }
 
     function updateFontSizeUI() {
-      const sizes = ['sm', 'md', 'lg', 'xl'];
-      sizes.forEach(s => {
-        const btn = document.getElementById(`fontBtn-${s}`);
-        if (!btn) return;
-        if (s === currentFontSize) {
-          btn.className = 'font-size-btn px-2 py-1 font-bold rounded text-lineGreen bg-white shadow-xs transition';
+      // Highlight selected option in dropdown
+      document.querySelectorAll('.font-opt-btn').forEach(btn => {
+        const sz = btn.getAttribute('data-size');
+        if (sz === currentFontSize) {
+          btn.classList.add('bg-emerald-50', 'text-lineGreen', 'font-bold');
         } else {
-          btn.className = 'font-size-btn px-2 py-1 font-medium rounded text-slate-500 hover:bg-white transition';
+          btn.classList.remove('bg-emerald-50', 'text-lineGreen', 'font-bold');
         }
       });
     }
