@@ -1,0 +1,2227 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Puti-AI | 超時空LINE</title>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Lucide Icons CDN -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <!-- Canvas Confetti for Celebration -->
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            lineGreen: '#06C755',
+            lineGreenDark: '#05A847',
+            lineGreenLight: '#E8F8EE',
+            lineChatBg: '#849ebf',
+            lineBubbleGreen: '#70D76F',
+            lineBubbleWhite: '#FFFFFF',
+            lineDark: '#1E232A',
+            lineGray: '#F7F8F9',
+            lineBorder: '#E5E7EB'
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    /* Custom Scrollbar */
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #f1f5f9;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #cbd5e1;
+      border-radius: 9999px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #94a3b8;
+    }
+
+    /* LINE chat background patterned nuance */
+    .chat-wall {
+      background-color: #8da4c4;
+      background-image: radial-gradient(rgba(255, 255, 255, 0.08) 1px, transparent 0);
+      background-size: 16px 16px;
+    }
+
+    /* Message animation */
+    .msg-appear {
+      animation: popIn 0.22s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+    @keyframes popIn {
+      0% { opacity: 0; transform: translateY(8px) scale(0.98); }
+      100% { opacity: 1; transform: translateY(0) scale(1); }
+    }
+
+    /* Pulse dot for status */
+    .status-dot {
+      box-shadow: 0 0 0 2px #fff;
+    }
+
+    /* Typing dots */
+    .typing-dot {
+      animation: wave 1.2s infinite ease-in-out;
+    }
+    .typing-dot:nth-child(2) { animation-delay: 0.2s; }
+    .typing-dot:nth-child(3) { animation-delay: 0.4s; }
+    @keyframes wave {
+      0%, 60%, 100% { transform: translateY(0); }
+      30% { transform: translateY(-4px); }
+    }
+  </style>
+</head>
+<body class="bg-slate-100 text-slate-800 h-screen flex flex-col font-sans select-none antialiased overflow-hidden">
+
+  <!-- ==================== TOP NAVIGATION / APP HEADER ==================== -->
+  <header class="bg-white border-b border-slate-200 px-4 py-2.5 flex items-center justify-between shrink-0 shadow-sm z-30">
+    <div class="flex items-center space-x-3">
+      <div class="w-9 h-9 rounded-xl bg-lineGreen flex items-center justify-center text-white shadow-md shadow-lineGreen/30">
+        <i data-lucide="message-circle" class="w-5 h-5"></i>
+      </div>
+      <div>
+        <div class="flex items-center space-x-2">
+          <h1 class="font-bold text-slate-800 text-base md:text-lg tracking-tight">Puti-AI | 超時空LINE</h1>
+          <span class="text-[11px] bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded-full font-medium border border-emerald-200 hidden sm:inline-flex items-center gap-1">
+            <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-ping"></span>
+            LINE 聊天風格
+          </span>
+        </div>
+        <p class="text-xs text-slate-400">穿梭時空加好友，與歷史名人、課文故事角色自在聊天</p>
+      </div>
+    </div>
+
+    <!-- Right Controls: Add Friends, Group Chat, API Settings, Export -->
+    <div class="flex items-center space-x-1.5 md:space-x-2">
+      <!-- Add from text button -->
+      <button onclick="openAddFriendModal()" class="flex items-center space-x-1 px-3 py-1.5 bg-lineGreen text-white text-xs md:text-sm font-medium rounded-lg hover:bg-lineGreenDark transition shadow-sm active:scale-95" title="新增 LINE 好友（輸入名字或貼課文）">
+        <i data-lucide="user-plus" class="w-4 h-4"></i>
+        <span>新增好友</span>
+      </button>
+
+      <!-- Multi-person Group Discussion Toggle -->
+      <button onclick="openGroupModal()" class="flex items-center space-x-1 px-3 py-1.5 bg-indigo-50 border border-indigo-200 text-indigo-700 text-xs md:text-sm font-medium rounded-lg hover:bg-indigo-100 transition active:scale-95" title="跨時空好友聊天群組">
+        <i data-lucide="users" class="w-4 h-4"></i>
+        <span class="hidden lg:inline">超時空群組</span>
+      </button>
+
+      <!-- Backup / Export button -->
+      <button onclick="exportCharacterData()" class="p-2 text-slate-500 hover:text-slate-700 hover:bg-slate-100 rounded-lg transition" title="備份或匯出好友名單">
+        <i data-lucide="share-2" class="w-4 h-4"></i>
+      </button>
+
+      <!-- API Settings Modal Button -->
+      <button onclick="openSettingsModal()" id="btnSettings" class="flex items-center space-x-1 px-2.5 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs md:text-sm font-medium rounded-lg transition border border-slate-300 active:scale-95">
+        <i data-lucide="settings" class="w-4 h-4"></i>
+        <span class="hidden sm:inline" id="apiStatusBadge">設定 API Key</span>
+      </button>
+    </div>
+  </header>
+
+  <!-- ==================== MAIN WORKSPACE ==================== -->
+  <div class="flex-1 flex overflow-hidden relative">
+
+    <!-- ==================== SIDEBAR: FRIEND LIST & GROUPS ==================== -->
+    <aside id="sidebar" class="w-full md:w-80 lg:w-96 bg-white border-r border-slate-200 flex flex-col shrink-0 z-20 absolute md:relative inset-y-0 left-0 transition-transform duration-300 md:translate-x-0">
+      
+      <!-- Search & Filters -->
+      <div class="p-3 border-b border-slate-100 space-y-2 bg-slate-50/50">
+        <div class="relative">
+          <i data-lucide="search" class="w-4 h-4 absolute left-3 top-2.5 text-slate-400"></i>
+          <input type="text" id="friendSearchInput" oninput="filterFriends()" placeholder="搜尋好友名字、身份或朝代..." class="w-full pl-9 pr-3 py-1.5 bg-white border border-slate-200 rounded-lg text-xs md:text-sm placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-lineGreen/30 focus:border-lineGreen transition shadow-inner">
+        </div>
+        
+        <!-- Tab categories -->
+        <div class="flex space-x-1 text-xs">
+          <button onclick="switchCategory('all')" id="tab-all" class="cat-tab flex-1 py-1 px-2 font-medium rounded-md text-lineGreen bg-lineGreenLight border border-lineGreen/30 transition text-center">全部 (<span id="count-all">0</span>)</button>
+          <button onclick="switchCategory('builtin')" id="tab-builtin" class="cat-tab flex-1 py-1 px-2 font-medium rounded-md text-slate-600 hover:bg-slate-100 transition text-center">經典先賢</button>
+          <button onclick="switchCategory('custom')" id="tab-custom" class="cat-tab flex-1 py-1 px-2 font-medium rounded-md text-slate-600 hover:bg-slate-100 transition text-center">課文/自訂</button>
+        </div>
+      </div>
+
+      <!-- Friend list container -->
+      <div id="friendListContainer" class="flex-1 overflow-y-auto divide-y divide-slate-100 select-none">
+        <!-- Injected via JavaScript -->
+      </div>
+
+      <!-- Bottom User Profile Strip (Like LINE) -->
+      <div class="p-2.5 border-t border-slate-200 bg-slate-50 flex items-center justify-between">
+        <div class="flex items-center space-x-2">
+          <div class="w-8 h-8 rounded-full bg-lineGreen text-white flex items-center justify-center font-bold text-xs shadow-sm">
+            學
+          </div>
+          <div>
+            <div class="text-xs font-bold text-slate-700 flex items-center gap-1">
+              <span>探索學子</span>
+              <span class="text-[10px] text-slate-400 font-normal">(現代時空)</span>
+            </div>
+            <div class="text-[10px] text-slate-400 truncate max-w-[150px]" id="currentEngineLabel">使用引擎: 未設定</div>
+          </div>
+        </div>
+        <button onclick="openAddFriendModal()" class="text-xs text-lineGreen hover:underline font-medium flex items-center gap-1 p-1">
+          <i data-lucide="user-plus" class="w-3.5 h-3.5"></i>
+          <span>新增好友</span>
+        </button>
+      </div>
+    </aside>
+
+    <!-- ==================== MAIN CHAT ROOM ==================== -->
+    <main id="chatRoom" class="flex-1 flex flex-col h-full bg-slate-100 relative">
+
+      <!-- Chat Topbar -->
+      <div class="bg-white/95 backdrop-blur px-4 py-2 border-b border-slate-200 flex items-center justify-between shrink-0 z-10 shadow-sm">
+        <div class="flex items-center space-x-3">
+          <!-- Mobile Back Button -->
+          <button onclick="toggleMobileSidebar(true)" class="md:hidden p-1.5 -ml-1 text-slate-600 hover:bg-slate-100 rounded-lg">
+            <i data-lucide="arrow-left" class="w-5 h-5"></i>
+          </button>
+
+          <!-- Active Character Avatar -->
+          <div class="relative cursor-pointer" onclick="openProfileModal()">
+            <div id="chatAvatar" class="w-10 h-10 rounded-full flex items-center justify-center text-white font-bold text-base shadow-sm ring-2 ring-white">
+              孔
+            </div>
+            <span id="chatOnlineDot" class="status-dot w-2.5 h-2.5 bg-emerald-500 rounded-full absolute bottom-0 right-0"></span>
+          </div>
+
+          <!-- Active Character Info -->
+          <div class="cursor-pointer" onclick="openProfileModal()">
+            <div class="flex items-center space-x-1.5">
+              <h2 id="chatName" class="font-bold text-slate-800 text-sm md:text-base leading-tight">孔子 (仲尼)</h2>
+              <span id="chatEraBadge" class="text-[10px] px-1.5 py-0.2 rounded bg-amber-100 text-amber-800 font-medium">春秋時代</span>
+            </div>
+            <p id="chatStatus" class="text-xs text-slate-400 truncate max-w-[200px] md:max-w-md">逝者如斯夫，不捨晝夜。吾十有五而志於學...</p>
+          </div>
+        </div>
+
+        <!-- Chat Header Actions -->
+        <div class="flex items-center space-x-1">
+          <!-- Clear Chat Messages -->
+          <button onclick="clearCurrentChat()" class="p-2 text-slate-400 hover:text-amber-600 hover:bg-amber-50 rounded-lg transition" title="清除目前的對話紀錄">
+            <i data-lucide="eraser" class="w-4 h-4"></i>
+          </button>
+          <!-- Delete Friend Completely -->
+          <button onclick="deleteCurrentFriend()" class="p-2 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition" title="刪除這位好友">
+            <i data-lucide="user-minus" class="w-4 h-4"></i>
+          </button>
+          <!-- Speech TTS toggle -->
+          <button onclick="toggleSpeech()" id="btnSpeechToggle" class="p-2 text-slate-400 hover:text-lineGreen hover:bg-emerald-50 rounded-lg transition" title="開關語音自動朗讀">
+            <i data-lucide="volume-2" class="w-4 h-4" id="speechIcon"></i>
+          </button>
+          <!-- Export Study Note -->
+          <button onclick="exportStudyNotes()" class="p-2 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition" title="生成學習回顧小報">
+            <i data-lucide="file-text" class="w-4 h-4"></i>
+          </button>
+          <!-- Profile View -->
+          <button onclick="openProfileModal()" class="p-2 text-slate-400 hover:text-slate-700 hover:bg-slate-100 rounded-lg transition" title="查看好友資料">
+            <i data-lucide="info" class="w-4 h-4"></i>
+          </button>
+        </div>
+      </div>
+
+      <!-- Messages Body -->
+      <div id="messagesContainer" class="flex-1 overflow-y-auto p-4 md:p-6 chat-wall space-y-4">
+        <!-- Messages will be rendered here dynamically -->
+      </div>
+
+      <!-- Quick Action Rich Menu (9 Quick Inquiries) -->
+      <div id="richMenuDrawer" class="bg-white border-t border-slate-200 transition-all duration-200 overflow-hidden shadow-lg z-10 hidden">
+        <div class="p-2.5 bg-slate-50 border-b border-slate-200 flex items-center justify-between">
+          <div class="flex items-center space-x-2">
+            <i data-lucide="compass" class="w-4 h-4 text-lineGreen"></i>
+            <span class="text-xs font-bold text-slate-700">快速求知選單 (按鍵 1~9 快速提問)</span>
+          </div>
+          <button onclick="toggleRichMenu(false)" class="text-slate-400 hover:text-slate-600 p-1">
+            <i data-lucide="x" class="w-3.5 h-3.5"></i>
+          </button>
+        </div>
+        <div class="grid grid-cols-3 sm:grid-cols-5 md:grid-cols-9 gap-1.5 p-2 bg-slate-100">
+          <button onclick="triggerQuickNumber(1)" class="p-2 bg-white hover:bg-emerald-50 hover:text-lineGreen border border-slate-200 rounded-lg flex flex-col items-center justify-center text-center transition group shadow-xs">
+            <span class="text-xs font-bold text-slate-400 group-hover:text-lineGreen mb-0.5">1</span>
+            <span class="text-xs font-medium text-slate-700 group-hover:text-lineGreen">生平簡介</span>
+          </button>
+          <button onclick="triggerQuickNumber(2)" class="p-2 bg-white hover:bg-emerald-50 hover:text-lineGreen border border-slate-200 rounded-lg flex flex-col items-center justify-center text-center transition group shadow-xs">
+            <span class="text-xs font-bold text-slate-400 group-hover:text-lineGreen mb-0.5">2</span>
+            <span class="text-xs font-medium text-slate-700 group-hover:text-lineGreen">豐功偉業</span>
+          </button>
+          <button onclick="triggerQuickNumber(3)" class="p-2 bg-white hover:bg-emerald-50 hover:text-lineGreen border border-slate-200 rounded-lg flex flex-col items-center justify-center text-center transition group shadow-xs">
+            <span class="text-xs font-bold text-slate-400 group-hover:text-lineGreen mb-0.5">3</span>
+            <span class="text-xs font-medium text-slate-700 group-hover:text-lineGreen">經典名言</span>
+          </button>
+          <button onclick="triggerQuickNumber(4)" class="p-2 bg-white hover:bg-emerald-50 hover:text-lineGreen border border-slate-200 rounded-lg flex flex-col items-center justify-center text-center transition group shadow-xs">
+            <span class="text-xs font-bold text-slate-400 group-hover:text-lineGreen mb-0.5">4</span>
+            <span class="text-xs font-medium text-slate-700 group-hover:text-lineGreen">趣聞軼事</span>
+          </button>
+          <button onclick="triggerQuickNumber(5)" class="p-2 bg-white hover:bg-emerald-50 hover:text-lineGreen border border-slate-200 rounded-lg flex flex-col items-center justify-center text-center transition group shadow-xs">
+            <span class="text-xs font-bold text-slate-400 group-hover:text-lineGreen mb-0.5">5</span>
+            <span class="text-xs font-medium text-slate-700 group-hover:text-lineGreen">思想精髓</span>
+          </button>
+          <button onclick="triggerQuickNumber(6)" class="p-2 bg-white hover:bg-emerald-50 hover:text-lineGreen border border-slate-200 rounded-lg flex flex-col items-center justify-center text-center transition group shadow-xs">
+            <span class="text-xs font-bold text-slate-400 group-hover:text-lineGreen mb-0.5">6</span>
+            <span class="text-xs font-medium text-slate-700 group-hover:text-lineGreen">時代關聯</span>
+          </button>
+          <button onclick="triggerQuickNumber(7)" class="p-2 bg-white hover:bg-emerald-50 hover:text-lineGreen border border-slate-200 rounded-lg flex flex-col items-center justify-center text-center transition group shadow-xs">
+            <span class="text-xs font-bold text-slate-400 group-hover:text-lineGreen mb-0.5">7</span>
+            <span class="text-xs font-medium text-slate-700 group-hover:text-lineGreen">爭議評析</span>
+          </button>
+          <button onclick="triggerQuickNumber(8)" class="p-2 bg-white hover:bg-emerald-50 hover:text-lineGreen border border-slate-200 rounded-lg flex flex-col items-center justify-center text-center transition group shadow-xs">
+            <span class="text-xs font-bold text-slate-400 group-hover:text-lineGreen mb-0.5">8</span>
+            <span class="text-xs font-medium text-slate-700 group-hover:text-lineGreen">相關推薦</span>
+          </button>
+          <button onclick="triggerQuickNumber(9)" class="p-2 bg-white hover:bg-emerald-50 hover:text-lineGreen border border-slate-200 rounded-lg flex flex-col items-center justify-center text-center transition group shadow-xs">
+            <span class="text-xs font-bold text-slate-400 group-hover:text-lineGreen mb-0.5">9</span>
+            <span class="text-xs font-medium text-slate-700 group-hover:text-lineGreen">教育反思</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Bottom Chat Input Bar -->
+      <div class="bg-white border-t border-slate-200 p-2.5 md:p-3 shrink-0">
+        <!-- Floating Prompt Suggestion Pills -->
+        <div class="flex items-center space-x-1.5 overflow-x-auto pb-2 text-xs no-scrollbar" id="dynamicSuggestions">
+          <!-- Injected dynamically based on character -->
+        </div>
+
+        <form id="chatForm" onsubmit="handleSendMessage(event)" class="flex items-end space-x-2">
+          <!-- Toggle Quick Menu Button -->
+          <button type="button" onclick="toggleRichMenu()" class="p-2.5 text-slate-500 hover:text-lineGreen hover:bg-emerald-50 rounded-xl transition shrink-0" title="展開/收合求知選單">
+            <i data-lucide="layout-grid" class="w-5 h-5"></i>
+          </button>
+
+          <!-- Input Textarea -->
+          <div class="flex-1 bg-slate-100 rounded-2xl px-3.5 py-2 border border-slate-200 focus-within:border-lineGreen focus-within:bg-white focus-within:ring-2 focus-within:ring-lineGreen/20 transition flex items-center">
+            <textarea id="userInput" rows="1" onkeydown="handleInputKeyDown(event)" placeholder="輸入想問歷史名人的問題，或輸入 1~9 快捷碼..." class="w-full bg-transparent resize-none text-sm text-slate-800 placeholder:text-slate-400 focus:outline-none max-h-24 overflow-y-auto leading-relaxed"></textarea>
+          </div>
+
+          <!-- Send Button -->
+          <button type="submit" id="btnSend" class="p-2.5 bg-lineGreen hover:bg-lineGreenDark text-white rounded-xl shadow-md shadow-lineGreen/30 transition shrink-0 active:scale-95 flex items-center justify-center">
+            <i data-lucide="send" class="w-5 h-5"></i>
+          </button>
+        </form>
+      </div>
+
+    </main>
+  </div>
+
+  <!-- ==================== FOOTER / COPYRIGHT ==================== -->
+  <footer class="bg-white border-t border-slate-200 px-4 py-1.5 text-center text-xs text-slate-500 shrink-0">
+    屏東縣後庄國小黃朝榮老師作品，免費分享，歡迎擴散推廣，嚴禁商用與任何侵權、不尊重著作權的行為，更多 Puti-AI 教學工具 <a href="https://padlet.com/clongwh/puti_ai_tools" target="_blank" rel="noopener noreferrer" class="text-emerald-600 hover:underline font-medium">點此前往</a>。
+  </footer>
+
+  <!-- ==================== MODALS ==================== -->
+
+  <!-- 1. API SETTINGS MODAL -->
+  <div id="settingsModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs z-50 flex items-center justify-center p-4 hidden">
+    <div class="bg-white rounded-2xl max-w-md w-full shadow-2xl border border-slate-100 overflow-hidden msg-appear">
+      <div class="bg-emerald-600 px-5 py-4 text-white flex items-center justify-between">
+        <div class="flex items-center space-x-2">
+          <i data-lucide="key-round" class="w-5 h-5"></i>
+          <h3 class="font-bold text-base">AI 引擎與 API Key 設定</h3>
+        </div>
+        <button onclick="closeSettingsModal()" class="text-white/80 hover:text-white">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+      <div class="p-5 space-y-4">
+        <!-- Engine selection -->
+        <div>
+          <label class="block text-xs font-bold text-slate-700 mb-1.5">選擇主要對話引擎</label>
+          <div class="grid grid-cols-2 gap-2">
+            <label class="flex items-center space-x-2 p-2.5 border rounded-xl cursor-pointer hover:bg-emerald-50/50 has-checked:border-lineGreen has-checked:bg-emerald-50 transition">
+              <input type="radio" name="apiProvider" value="gemini" checked onchange="updateProviderUI()" class="text-lineGreen focus:ring-lineGreen">
+              <div>
+                <div class="text-xs font-bold text-slate-800">Google Gemini</div>
+                <div class="text-[10px] text-slate-500">免費額度高、文史涵養極佳</div>
+              </div>
+            </label>
+            <label class="flex items-center space-x-2 p-2.5 border rounded-xl cursor-pointer hover:bg-emerald-50/50 has-checked:border-lineGreen has-checked:bg-emerald-50 transition">
+              <input type="radio" name="apiProvider" value="groq" onchange="updateProviderUI()" class="text-lineGreen focus:ring-lineGreen">
+              <div>
+                <div class="text-xs font-bold text-slate-800">Groq (Llama-3.3)</div>
+                <div class="text-[10px] text-slate-500">超音速打字機噴字</div>
+              </div>
+            </label>
+          </div>
+        </div>
+
+        <!-- Gemini API Key input -->
+        <div id="geminiKeyBlock">
+          <div class="flex justify-between items-center mb-1">
+            <label class="text-xs font-bold text-slate-700">Gemini API Key</label>
+            <a href="https://aistudio.google.com/app/apikey" target="_blank" class="text-[11px] text-emerald-600 hover:underline flex items-center gap-0.5">
+              免費申請 Key <i data-lucide="external-link" class="w-3 h-3"></i>
+            </a>
+          </div>
+          <input type="password" id="geminiApiKey" onchange="fetchGeminiLiveModels()" placeholder="AIzaSy..." class="w-full px-3 py-2 border border-slate-300 rounded-xl text-xs font-mono focus:ring-2 focus:ring-lineGreen/30 focus:border-lineGreen outline-none mb-2">
+          
+          <div class="flex justify-between items-center mb-1">
+            <label class="text-xs font-bold text-slate-700">Gemini 模型選擇</label>
+            <button type="button" onclick="fetchGeminiLiveModels()" id="btnFetchGeminiModels" class="text-[10px] text-emerald-700 hover:underline flex items-center gap-1 font-medium bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">
+              <i data-lucide="refresh-cw" class="w-2.5 h-2.5"></i> 動態更新模型清單
+            </button>
+          </div>
+          <div class="flex space-x-1.5 mb-1.5">
+            <select id="geminiModelSelect" onchange="syncCustomModelInput('gemini')" class="flex-1 px-3 py-2 border border-slate-300 rounded-xl text-xs text-slate-700 focus:ring-2 focus:ring-lineGreen/30 outline-none">
+              <option value="gemini-2.5-flash">gemini-2.5-flash (最新推薦、超快極致)</option>
+              <option value="gemini-2.0-flash" selected>gemini-2.0-flash (最新主流主力款)</option>
+              <option value="gemini-2.5-pro">gemini-2.5-pro (深度文史哲推理)</option>
+              <option value="gemini-1.5-flash">gemini-1.5-flash (穩定經典款)</option>
+              <option value="gemini-1.5-pro">gemini-1.5-pro (經典長文本)</option>
+              <option value="custom">自訂輸入模型名稱...</option>
+            </select>
+          </div>
+          <input type="text" id="geminiCustomModel" placeholder="輸入自訂模型名稱，例如 gemini-2.0-flash-exp" class="w-full px-3 py-1.5 border border-dashed border-slate-300 rounded-lg text-xs font-mono text-slate-600 outline-none hidden">
+          <p class="text-[10px] text-slate-400 mt-1" id="geminiModelHint">已支援點擊「動態更新」，將即時向 Google 查詢你帳號目前所有可用模型！</p>
+        </div>
+
+        <!-- Groq API Key input -->
+        <div id="groqKeyBlock" class="hidden">
+          <div class="flex justify-between items-center mb-1">
+            <label class="text-xs font-bold text-slate-700">Groq API Key</label>
+            <a href="https://console.groq.com/keys" target="_blank" class="text-[11px] text-emerald-600 hover:underline flex items-center gap-0.5">
+              免費申請 Key <i data-lucide="external-link" class="w-3 h-3"></i>
+            </a>
+          </div>
+          <input type="password" id="groqApiKey" onchange="fetchGroqLiveModels()" placeholder="gsk_..." class="w-full px-3 py-2 border border-slate-300 rounded-xl text-xs font-mono focus:ring-2 focus:ring-lineGreen/30 focus:border-lineGreen outline-none mb-2">
+
+          <div class="flex justify-between items-center mb-1">
+            <label class="text-xs font-bold text-slate-700">Groq 模型選擇</label>
+            <button type="button" onclick="fetchGroqLiveModels()" id="btnFetchGroqModels" class="text-[10px] text-emerald-700 hover:underline flex items-center gap-1 font-medium bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">
+              <i data-lucide="refresh-cw" class="w-2.5 h-2.5"></i> 動態更新模型清單
+            </button>
+          </div>
+          <div class="flex space-x-1.5 mb-1.5">
+            <select id="groqModelSelect" onchange="syncCustomModelInput('groq')" class="flex-1 px-3 py-2 border border-slate-300 rounded-xl text-xs text-slate-700 focus:ring-2 focus:ring-lineGreen/30 outline-none">
+              <option value="llama-3.1-8b-instant" selected>llama-3.1-8b-instant (官方主力、極速穩定)</option>
+              <option value="llama-3.3-70b-versatile">llama-3.3-70b-versatile (新一代 70B 深度模型)</option>
+              <option value="llama-3.1-70b-versatile">llama-3.1-70b-versatile (經典 70B 模型)</option>
+              <option value="gemma2-9b-it">gemma2-9b-it (Google Gemma2 輕快繁中佳)</option>
+              <option value="custom">自訂輸入模型名稱...</option>
+            </select>
+          </div>
+          <input type="text" id="groqCustomModel" placeholder="輸入自訂模型名稱，例如 llama-3.1-8b-instant" class="w-full px-3 py-1.5 border border-dashed border-slate-300 rounded-lg text-xs font-mono text-slate-600 outline-none hidden">
+          <p class="text-[10px] text-slate-400 mt-1" id="groqModelHint">若遇到模型下架或存取錯誤，可點擊「動態更新模型清單」自動抓取官方最新模型</p>
+        </div>
+
+        <!-- Student Tone / Level Selector -->
+        <div>
+          <label class="block text-xs font-bold text-slate-700 mb-1">對話學習難易度適配</label>
+          <select id="audienceLevel" class="w-full px-3 py-2 border border-slate-300 rounded-xl text-xs text-slate-700 focus:ring-2 focus:ring-lineGreen/30 outline-none">
+            <option value="elementary">國小中高年級（生動淺白、親切引導、善用譬喻）</option>
+            <option value="junior">國中 / 高中（深入歷史背景、哲學思辨、批判思考）</option>
+            <option value="scholar">大師研討模式（原汁原味文言文/學術思維、高難度對辯）</option>
+          </select>
+        </div>
+
+        <div class="pt-2 flex space-x-2">
+          <button onclick="saveApiSettings()" class="flex-1 py-2.5 bg-lineGreen hover:bg-lineGreenDark text-white font-bold rounded-xl text-xs shadow-md transition">
+            儲存設定
+          </button>
+          <button onclick="closeSettingsModal()" class="px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-xl text-xs font-medium transition">
+            取消
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 2. ADD FRIEND MODAL (直接輸入名字加好友 OR 貼課文加好友) -->
+  <div id="addFriendModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs z-50 flex items-center justify-center p-4 hidden">
+    <div class="bg-white rounded-2xl max-w-2xl w-full max-h-[90vh] flex flex-col shadow-2xl border border-slate-100 overflow-hidden msg-appear">
+      
+      <!-- Modal Header -->
+      <div class="bg-lineGreen px-5 py-3.5 text-white flex items-center justify-between shrink-0 shadow-sm">
+        <div class="flex items-center space-x-2">
+          <i data-lucide="user-plus" class="w-5 h-5"></i>
+          <div>
+            <h3 class="font-bold text-base">新增 LINE 好友</h3>
+            <p class="text-xs text-emerald-100">可直接輸入名人姓名快速加好友，或貼上課文/故事自動抓取角色！</p>
+          </div>
+        </div>
+        <button onclick="closeAddFriendModal()" class="text-white/80 hover:text-white">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+
+      <!-- Add Friend Tabs: Quick by Name vs From Text -->
+      <div class="flex border-b border-slate-200 bg-slate-50 text-xs shrink-0">
+        <button type="button" onclick="switchAddFriendTab('byName')" id="tabAddByName" class="flex-1 py-3 px-4 font-bold text-lineGreen border-b-2 border-lineGreen bg-white flex items-center justify-center gap-1.5 transition">
+          <i data-lucide="search" class="w-4 h-4"></i>
+          <span>輸入姓名加好友 (古今中外名人)</span>
+        </button>
+        <button type="button" onclick="switchAddFriendTab('byText')" id="tabAddByText" class="flex-1 py-3 px-4 font-bold text-slate-500 hover:text-slate-800 flex items-center justify-center gap-1.5 transition">
+          <i data-lucide="file-text" class="w-4 h-4"></i>
+          <span>貼上課文/故事抓角色</span>
+        </button>
+      </div>
+
+      <!-- Tab Content Area -->
+      <div class="p-5 flex-1 overflow-y-auto space-y-4">
+        
+        <!-- TAB 1: QUICK ADD BY NAME -->
+        <div id="addByNamePane" class="space-y-4">
+          <div class="bg-emerald-50 border border-emerald-200 rounded-xl p-3 text-xs text-emerald-900 leading-relaxed">
+            💡 <strong>AI 智慧名片生成</strong>：不管是當代知名人物（例如：黃仁勳、馬斯克、林書豪、宮崎駿、戴資穎）還是歷史傳奇，只要輸入名字，AI 會自動幫他製作專屬 LINE 名片、個性簽名與開場白！
+          </div>
+
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1">名人或角色姓名 <span class="text-rose-500">*</span></label>
+            <input type="text" id="quickNameInput" placeholder="例如：黃仁勳、伊隆·馬斯克、戴資穎、宮崎駿、諸葛亮..." class="w-full px-3.5 py-2.5 border border-slate-300 rounded-xl text-sm focus:ring-2 focus:ring-lineGreen/30 focus:border-lineGreen outline-none">
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+            <div>
+              <label class="block text-xs font-bold text-slate-700 mb-1">頭銜或時代背景 (可選填，留空由 AI 自動推斷)</label>
+              <input type="text" id="quickEraInput" placeholder="例如：輝達 CEO / AI 教父" class="w-full px-3 py-2 border border-slate-300 rounded-xl text-xs focus:ring-2 focus:ring-lineGreen/30 outline-none">
+            </div>
+            <div>
+              <label class="block text-xs font-bold text-slate-700 mb-1">經典名言或狀態簽名 (可選填)</label>
+              <input type="text" id="quickStatusInput" placeholder="例如：跑起來，不要用走的！" class="w-full px-3 py-2 border border-slate-300 rounded-xl text-xs focus:ring-2 focus:ring-lineGreen/30 outline-none">
+            </div>
+          </div>
+
+          <!-- Quick presets chips -->
+          <div>
+            <label class="block text-xs font-bold text-slate-600 mb-1.5">推薦熱門人物試用：</label>
+            <div class="flex flex-wrap gap-1.5">
+              <button type="button" onclick="fillQuickName('黃仁勳', '輝達創辦人 / AI教父', '奔跑吧！不要用走的。')" class="text-xs px-2.5 py-1 bg-slate-100 hover:bg-emerald-50 hover:text-emerald-700 rounded-lg border border-slate-200 transition">黃仁勳</button>
+              <button type="button" onclick="fillQuickName('馬斯克', 'Tesla & SpaceX 執行長', '如果事情夠重要，即使困難重重也要做。')" class="text-xs px-2.5 py-1 bg-slate-100 hover:bg-emerald-50 hover:text-emerald-700 rounded-lg border border-slate-200 transition">馬斯克</button>
+              <button type="button" onclick="fillQuickName('戴資穎', '台灣羽球球后', '相信自己，永不放棄！')" class="text-xs px-2.5 py-1 bg-slate-100 hover:bg-emerald-50 hover:text-emerald-700 rounded-lg border border-slate-200 transition">戴資穎</button>
+              <button type="button" onclick="fillQuickName('宮崎駿', '吉卜力動畫大師', '創作是為了給孩子們帶來希望。')" class="text-xs px-2.5 py-1 bg-slate-100 hover:bg-emerald-50 hover:text-emerald-700 rounded-lg border border-slate-200 transition">宮崎駿</button>
+              <button type="button" onclick="fillQuickName('諸葛亮', '三國蜀漢丞相', '非淡泊無以明志，非寧靜無以致遠。')" class="text-xs px-2.5 py-1 bg-slate-100 hover:bg-emerald-50 hover:text-emerald-700 rounded-lg border border-slate-200 transition">諸葛亮</button>
+            </div>
+          </div>
+
+          <div class="pt-3">
+            <button type="button" onclick="confirmAddFriendByName()" id="btnAddByNameSubmit" class="w-full py-2.5 bg-lineGreen hover:bg-lineGreenDark text-white font-bold rounded-xl text-xs md:text-sm shadow-md transition flex items-center justify-center gap-1.5 active:scale-95">
+              <i data-lucide="user-check" class="w-4 h-4"></i>
+              <span>立即加為好友並開始聊天</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- TAB 2: ADD FROM STORY / TEXTBOOK -->
+        <div id="addByTextPane" class="space-y-4 hidden">
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1.5">快速試用範例文章：</label>
+            <div class="flex flex-wrap gap-1.5">
+              <button type="button" onclick="loadSampleText('squirrel')" class="text-xs px-2.5 py-1 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-200 rounded-md transition font-medium">《松鼠先生的麵包》童話</button>
+              <button type="button" onclick="loadSampleText('beiying')" class="text-xs px-2.5 py-1 bg-amber-50 hover:bg-amber-100 text-amber-800 border border-amber-200 rounded-md transition font-medium">朱自清《背影》</button>
+              <button type="button" onclick="loadSampleText('chabuduo')" class="text-xs px-2.5 py-1 bg-blue-50 hover:bg-blue-100 text-blue-800 border border-blue-200 rounded-md transition font-medium">胡適《差不多先生傳》</button>
+              <button type="button" onclick="loadSampleText('ershi')" class="text-xs px-2.5 py-1 bg-purple-50 hover:bg-purple-100 text-purple-800 border border-purple-200 rounded-md transition font-medium">沈復《兒時記趣》</button>
+            </div>
+          </div>
+
+          <div>
+            <div class="flex justify-between items-center mb-1">
+              <label class="text-xs font-bold text-slate-700">課文 / 故事內容</label>
+              <span class="text-[11px] text-slate-400" id="textCharCount">0 字</span>
+            </div>
+            <textarea id="extractTextInput" rows="5" oninput="document.getElementById('textCharCount').innerText = this.value.length + ' 字'" placeholder="請貼上任何課文、童話繪本、故事或小說段落...&#10;例如：森林裡住著一隻松鼠先生，他每天清晨都會烤香噴噴的麵包..." class="w-full p-3 border border-slate-300 rounded-xl text-xs md:text-sm leading-relaxed focus:ring-2 focus:ring-lineGreen/30 focus:border-lineGreen outline-none"></textarea>
+          </div>
+
+          <div class="flex justify-between items-center">
+            <p class="text-[11px] text-slate-500">點擊「尋找故事角色」，系統將分析文章並找出角色讓你加為 LINE 好友。</p>
+            <button type="button" onclick="analyzeTextCharacters()" id="btnAnalyzeText" class="px-4 py-2 bg-lineGreen hover:bg-lineGreenDark text-white font-bold rounded-xl text-xs shadow-md transition flex items-center gap-1.5 active:scale-95">
+              <i data-lucide="sparkles" class="w-4 h-4"></i>
+              <span>尋找故事角色</span>
+            </button>
+          </div>
+
+          <!-- Extraction Results Container -->
+          <div id="extractResultsContainer" class="hidden border-t border-slate-200 pt-3 space-y-3">
+            <div class="flex items-center justify-between">
+              <span class="text-xs font-bold text-slate-800">找到的角色 (勾選你想加為好友的角色)：</span>
+              <span class="text-xs text-lineGreen font-medium" id="detectedCountText">共 0 位角色</span>
+            </div>
+
+            <div id="extractedCharactersList" class="space-y-2 max-h-48 overflow-y-auto pr-1">
+              <!-- Injected by JS -->
+            </div>
+
+            <div class="pt-2 flex justify-end space-x-2">
+              <button type="button" onclick="confirmAddExtractedCharacters()" class="px-5 py-2.5 bg-lineGreen hover:bg-lineGreenDark text-white font-bold rounded-xl text-xs shadow-md transition flex items-center gap-1.5">
+                <i data-lucide="user-plus" class="w-4 h-4"></i>
+                <span>加為 LINE 好友並開始聊天</span>
+              </button>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- 3. GROUP CHAT ROUNDTABLE MODAL (跨時空名人跨界大亂鬥) -->
+  <div id="groupModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs z-50 flex items-center justify-center p-4 hidden">
+    <div class="bg-white rounded-2xl max-w-lg w-full shadow-2xl border border-slate-100 overflow-hidden msg-appear">
+      <div class="bg-indigo-600 px-5 py-4 text-white flex items-center justify-between">
+        <div class="flex items-center space-x-2">
+          <i data-lucide="users" class="w-5 h-5"></i>
+          <div>
+            <h3 class="font-bold text-base">建立「超時空跨界群組」</h3>
+            <p class="text-xs text-indigo-100">將多位不同朝代的名人拉進同一個 LINE 群對談！</p>
+          </div>
+        </div>
+        <button onclick="closeGroupModal()" class="text-white/80 hover:text-white">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+
+      <div class="p-5 space-y-4">
+        <div>
+          <label class="block text-xs font-bold text-slate-700 mb-1">群組名稱</label>
+          <input type="text" id="groupNameInput" value="古今哲思與科學思辨會" class="w-full px-3 py-2 border border-slate-300 rounded-xl text-xs focus:ring-2 focus:ring-indigo-300 outline-none">
+        </div>
+
+        <div>
+          <label class="block text-xs font-bold text-slate-700 mb-1">選擇要拉進群組的名人 (至少選擇 2 位)</label>
+          <div id="groupMemberSelectorList" class="grid grid-cols-2 gap-2 max-h-48 overflow-y-auto p-1 border border-slate-200 rounded-xl">
+            <!-- Injected by JS -->
+          </div>
+        </div>
+
+        <div class="pt-2 flex space-x-2">
+          <button onclick="createGroupChat()" class="flex-1 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl text-xs shadow-md transition">
+            創建群組並進入群聊
+          </button>
+          <button onclick="closeGroupModal()" class="px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-xl text-xs font-medium transition">
+            取消
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 4. PROFILE / CHARACTER DETAIL MODAL -->
+  <div id="profileModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs z-50 flex items-center justify-center p-4 hidden">
+    <div class="bg-white rounded-2xl max-w-md w-full shadow-2xl border border-slate-100 overflow-hidden msg-appear">
+      <div id="profileHeaderBg" class="h-28 bg-gradient-to-r from-emerald-500 to-teal-600 relative flex items-end justify-center pb-0">
+        <button onclick="closeProfileModal()" class="absolute top-3 right-3 text-white/80 hover:text-white bg-black/20 p-1 rounded-full">
+          <i data-lucide="x" class="w-4 h-4"></i>
+        </button>
+        <div id="profileAvatar" class="w-20 h-20 rounded-full border-4 border-white text-white font-bold text-2xl flex items-center justify-center translate-y-10 shadow-lg">
+          孔
+        </div>
+      </div>
+      <div class="pt-12 p-6 text-center space-y-3">
+        <div>
+          <h3 id="profileName" class="text-xl font-bold text-slate-800">孔子 (孔丘)</h3>
+          <p id="profileEra" class="text-xs text-emerald-700 font-medium">春秋時代 / 儒家思想宗師</p>
+        </div>
+        <p id="profileStatusQuote" class="text-xs text-slate-500 italic bg-slate-50 p-3 rounded-xl border border-slate-100">
+          「德不孤，必有鄰。」
+        </p>
+        <div class="text-left text-xs text-slate-600 space-y-2 max-h-48 overflow-y-auto pr-1">
+          <div>
+            <span class="font-bold text-slate-800">【背景介紹】：</span>
+            <span id="profileBio">春秋時期魯國人，大思想家、教育家，開創儒家學派，提倡有教無類與因材施教。</span>
+          </div>
+          <div>
+            <span class="font-bold text-slate-800">【核心精神】：</span>
+            <span id="profileCoreThought">仁愛、禮制、克己復禮、天下大同。</span>
+          </div>
+          <div id="profileSourceTextContainer" class="hidden">
+            <span class="font-bold text-slate-800">【來源課文】：</span>
+            <span id="profileSourceText" class="text-amber-700">自訂課文提取</span>
+          </div>
+        </div>
+        <div class="pt-3">
+          <button onclick="closeProfileModal()" class="w-full py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold transition">
+            返回對話
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 5. STUDY REPORT MODAL -->
+  <div id="reportModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs z-50 flex items-center justify-center p-4 hidden">
+    <div class="bg-white rounded-2xl max-w-xl w-full max-h-[90vh] flex flex-col shadow-2xl border border-slate-100 overflow-hidden msg-appear">
+      <div class="bg-indigo-600 px-5 py-3.5 text-white flex items-center justify-between shrink-0">
+        <div class="flex items-center space-x-2">
+          <i data-lucide="award" class="w-5 h-5"></i>
+          <h3 class="font-bold text-base">歷史探索小報 (對話學習成果)</h3>
+        </div>
+        <button onclick="closeReportModal()" class="text-white/80 hover:text-white">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+      <div id="reportContent" class="p-5 overflow-y-auto text-xs md:text-sm space-y-3 leading-relaxed text-slate-700">
+        <!-- Rendered by JS -->
+      </div>
+      <div class="p-4 bg-slate-50 border-t border-slate-200 flex justify-end space-x-2 shrink-0">
+        <button onclick="printStudyReport()" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-bold text-xs shadow-md transition flex items-center gap-1">
+          <i data-lucide="printer" class="w-4 h-4"></i>
+          <span>列印 / 匯出 PDF</span>
+        </button>
+        <button onclick="closeReportModal()" class="px-4 py-2 bg-slate-200 hover:bg-slate-300 text-slate-700 rounded-xl font-medium text-xs transition">
+          關閉
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== APPLICATION LOGIC SCRIPT ==================== -->
+  <script>
+    // --- 1. DEFAULT DATA & STATE ---
+    const SYSTEM_ROLE_TEMPLATE = `你是「Puti-AI 超時空LINE」的對話角色。你的目標是使用繁體中文，像在用 LINE 聊天一樣，以最親切、生動、自然的方式與使用者對話！
+
+【LINE 聊天角色扮演指南】
+1. 身份融入：完全融入所扮演角色的身份與性格。如果是童話角色（如松鼠先生、小兔子），請用活潑可愛、親切溫暖的口吻；如果是歷史人物，請展現該人物特有的時代感與個性；如果是課文人物，必須忠於課文的故事設定與喜怒哀樂。
+2. LINE 聊天語氣：像朋友在 LINE 聊天一樣，可以適時使用標點符號、輕鬆的問候、分享自己的生活或故事。請勿使用死板的教科書百科全書口吻。
+3. 快速求知功能：當使用者輸入數字 1~9 時，你可以依據自身角色特性自然地回答：
+   - 1：我的自我介紹與故事背景
+   - 2：我最得意的事情或成就
+   - 3：我的座右銘或經典名言
+   - 4：我的秘密、小八卦或有趣故事
+   - 5：我最看重的事物或想法
+   - 6：我生活的故事世界或時代背景
+   - 7：大家對我不同的看法或討論
+   - 8：推薦相關的好書或故事
+   - 9：送給朋友的人生或生活啟發
+4. 友善互動：在對話中主動關心對方、好奇詢問對方的想法，就像真正的 LINE 好友一樣。`;
+
+    // Built-in famous characters
+    const DEFAULT_CHARACTERS = [
+      {
+        id: 'confucius',
+        name: '孔子 (仲尼)',
+        era: '春秋時代',
+        tag: 'builtin',
+        color: 'from-amber-600 to-yellow-600',
+        avatarBg: '#d97706',
+        avatarText: '孔',
+        status: '逝者如斯夫，不捨晝夜。汝有何問，但說無妨。',
+        bio: '春秋時期魯國人，開創儒家學派，提倡有教無類、仁政禮治，被尊稱為至聖先師。',
+        coreThought: '克己復禮、天下歸仁、因材施教。',
+        suggestions: ['老師，什麼是「仁」？', '如果學生不用功，您會怎麼教？', '輸入 1 了解生平', '輸入 4 聽聽軼事'],
+        firstMessage: '吾乃孔丘，字仲尼，魯國人士。今得與後世學子對談，甚感欣慰。汝可問吾關於禮樂、仁義、治國、修身之道。若欲速知某事，可輸入數字：1了解吾之生平，2知曉吾之功業，3聆聽吾之箴言...汝有何疑問，但說無妨。'
+      },
+      {
+        id: 'einstein',
+        name: '愛因斯坦 (Albert)',
+        era: '現代物理',
+        tag: 'builtin',
+        color: 'from-blue-600 to-indigo-600',
+        avatarBg: '#2563eb',
+        avatarText: '愛',
+        status: '想像力比知識更重要。相對論的奇妙世界等著你！',
+        bio: '猶太裔理論物理學家，提出相對論與光電效應解釋，深刻改變了人類對時間、空間與宇宙的理解。',
+        coreThought: '質能等價 (E=mc²)、光量子假說、和平主義。',
+        suggestions: ['時間真的會變慢嗎？', '您小時候數學真的不好嗎？', '輸入 2 了解相對論', '輸入 9 教育啟示'],
+        firstMessage: '您好！我是阿爾伯特·愛因斯坦 (Albert Einstein)。能透過這奇妙的時空聊天室與你交流太有趣了！無論你想探討相對論、宇宙黑洞，還是關於好奇心與和平，請隨意發問。輸入數字 1~9 也隨時能獲取不同角度的解答！'
+      },
+      {
+        id: 'libai',
+        name: '李白 (太白)',
+        era: '盛唐詩仙',
+        tag: 'builtin',
+        color: 'from-emerald-600 to-teal-600',
+        avatarBg: '#059669',
+        avatarText: '李',
+        status: '人生得意須盡歡，莫使金樽空對月。對酒當歌！',
+        bio: '唐代浪漫主義詩人，字太白，號青蓮居士。其詩雄奇飄逸，千古傳誦，後世譽為「詩仙」。',
+        coreThought: '浪漫超脫、蔑視權貴、追求精神自由。',
+        suggestions: ['您真的是喝醉了才寫詩嗎？', '您跟杜甫感情到底好不好？', '輸入 3 經典名言', '寫首給今天學生的詩'],
+        firstMessage: '哈哈！天上白玉京，十二樓五城。吾乃隴西李太白是也！後世朋友，見你神采奕奕，何不與我同飲一杯清茶，聊聊天地之大、詩賦之美？若要快問快答，輸入 1 看我生平，3 聞我名篇！'
+      },
+      {
+        id: 'curie',
+        name: '居禮夫人 (Marie)',
+        era: '近代科學',
+        tag: 'builtin',
+        color: 'from-purple-600 to-pink-600',
+        avatarBg: '#9333ea',
+        avatarText: '居',
+        status: '生活對於任何人都非易事，我們必須有堅忍不拔的精神。',
+        bio: '波蘭裔法國籍物理學家、化學家，首位獲得諾貝爾獎的女性，更是史上唯一獲得兩座不同科學領域諾貝爾獎的大師。發現鐳與釙元素。',
+        coreThought: '無私奉獻於科學、放射性研究開拓、堅韌不拔。',
+        suggestions: ['提煉鐳元素有多辛苦？', '您遇到挫折時怎麼堅持下來的？', '輸入 4 科學趣聞', '輸入 5 思想精髓'],
+        firstMessage: '你好，我是瑪麗·居禮 (Marie Curie)。在科學探索的道路上，好奇心是我們最好的指針。很高興遇見熱愛學習的你，你想跟我聊聊實驗室的日子，還是如何面對人生挑戰呢？'
+      },
+      {
+        id: 'davinci',
+        name: '達文西 (Leonardo)',
+        era: '文藝復興',
+        tag: 'builtin',
+        color: 'from-orange-600 to-amber-700',
+        avatarBg: '#ea580c',
+        avatarText: '達',
+        status: '學習是唯一心靈永遠不會耗盡、永遠不會害怕的事情。',
+        bio: '義大利文藝復興全才，畫家、解剖學家、發明家、建築師、工程師。代表作有《蒙娜麗莎》、《最後的晚餐》。',
+        coreThought: '經驗主義、跨領域博雅、對自然萬物無窮的好奇。',
+        suggestions: ['蒙娜麗莎到底在笑什麼？', '您的飛行器草稿是怎麼想出來的？', '輸入 3 名言', '輸入 8 相關推薦'],
+        firstMessage: '嗨！我是李奧納多·達文西。我的手稿裡畫滿了鳥兒的翅膀、水流的漩渦和人體的骨骼。對我來說，藝術和科學是一體兩面。今天，你想和我一起觀察什麼有趣的秘密？'
+      },
+      {
+        id: 'zheng_chenggong',
+        name: '鄭成功 (國姓爺)',
+        era: '明鄭台灣',
+        tag: 'builtin',
+        color: 'from-red-600 to-rose-700',
+        avatarBg: '#e11d48',
+        avatarText: '鄭',
+        status: '開闢荊榛逐荷夷，十年始克復先基。忠烈千秋。',
+        bio: '明末清初軍事家、政治家，賜國姓朱，世稱「國姓爺」。率軍登陸台灣擊退荷蘭東印度公司，奠定台灣漢人社會體制與開發基礎。',
+        coreThought: '忠貞報國、海權戰略、屯田開疆。',
+        suggestions: ['當初渡過黑水溝來台灣有多艱險？', '面對荷蘭人的大砲船艦您怎麼戰勝的？', '輸入 2 豐功偉業', '輸入 7 爭議與評價'],
+        firstMessage: '吾乃延平王鄭成功。望向這片美麗之島「福爾摩沙」，當年將士浴血開拓之情景猶在眼前。後世學子，知曉台灣昔日之風雲變幻乎？吾願與汝暢談海疆風雲！'
+      }
+    ];
+
+    // State
+    let characters = [];
+    let currentChatId = 'confucius';
+    let chatHistories = {}; // { charId: [ { role: 'user'|'assistant', text: string, time: string } ] }
+    let currentCategory = 'all';
+    let speechEnabled = false;
+    let isGenerating = false;
+
+    // Presets for textbook samples
+    const SAMPLE_TEXTS = {
+      squirrel: `森林的早晨飄著濃濃的香氣。松鼠先生在樹洞裡開了一家小麵包坊，他每天清晨五點就起床揉麵糰。松鼠先生最拿手的是「橡實香脆法棍」和「蜂蜜栗子軟包」。
+這一天，森林裡下著濛濛細雨，小刺蝟縮著身子走過麵包店門口，肚子餓得咕嚕咕嚕叫。松鼠先生看見了，連忙推開木窗，熱情地招呼：「小刺蝟，快進來躲雨！剛出爐的松子麵包熱騰騰的，送給你吃！」
+小刺蝟感動得眼眶紅紅的，接過溫暖的麵包，大口咬了下去。大熊警長路過，也聞香而來，哈哈大笑說：「松鼠先生，你的麵包總是有一種讓人感到幸福的味道！」
+松鼠先生笑瞇瞇地摸摸蓬鬆的尾巴說：「那是因為我在麵糰裡，加了滿滿的心意和微笑呀！」從那天起，森林裡的每一個動物都知道，只要走進松鼠先生的麵包坊，不只能填飽肚子，心裡也會變得暖洋洋的。`,
+
+      beiying: `我與父親不相見已二年餘了，我最不能忘記的是他的背影。那年冬天，祖母死了，父親的差使也交卸了，正是禍不單行的日子。我從北京到徐州，打算跟著父親奔喪回家。到徐州見著父親，看見滿院狼藉的東西，又想起祖母，不禁簌簌地流下眼淚。父親說：「事已至此，不必難過，好在天無絕人之路！」
+到了南京，父親因為事忙，本已說定不送我，叫旅館裡一個熟識的茶房陪我同去。他再三囑咐茶房，甚是仔細。但他終於不放心，怕茶房不妥帖；頗躊躇了一會。其實我那年已二十歲，北京已來往過兩三次，是沒有什麼要緊的了。他躊躇了一會，終於決定還是自己送我去。
+我看見他戴著黑布小帽，穿著黑布大馬褂，深青布棉袍，蹣跚地走到鐵道邊，慢慢探身下去，尚不大難。可是他穿過鐵道，要爬上那邊月台，就不容易了。他用兩手攀著上面，兩腳再向上縮；他肥胖的身子向左微傾，顯出一努力的樣子。這時我看見他的背影，我的淚很快地流下來了。他走過來，把橘子一股腦兒放在我的皮大衣上。於是撲撲衣上的泥土，心裡很輕鬆似的，過一會說：「我走了，到那邊來信！」我望著他走出去。他走了幾步，回過頭看見我，說：「進去吧，裡邊沒人。」等他的背影混入來來往往的人裡，再找不著了，我便進來坐下，我的眼淚又來了。`,
+      
+      chabuduo: `你知道中國最有名的人是誰？提起此人，人人皆曉，處處聞名。他姓差，名不多，是各省各縣各村人氏。你一定見過他，一定聽過別人談起他。差不多先生的名字天天掛在大家的口頭，因為他是中國全國人的代表。
+差不多先生的相貌和你和我都差不多。他有一雙眼睛，但看不太清楚；有兩隻耳朵，但聽不太分明；有鼻子和嘴，但他對於氣味和口味都不很講究。他的腦子也不小，但他的記性卻不很精明，他的思想也不很細密。
+他常說：「凡事只要差不多，就好了。何必太精明呢？」
+他小的時候，他媽叫他去買紅糖，他買了白糖回來。他媽罵他，他搖搖頭說：「紅糖白糖不是差不多嗎？」
+後來他在一個錢莊裡做夥計，他常常把十字寫成千字，千字寫成十字。掌櫃的生氣了，常常罵他。他只是笑嘻嘻地賠小心道：「千字比十字只多一小撇，不是差不多嗎？」
+有一天，他忽然得了急病，趕快叫家人去請東街的汪大夫。家人急急忙忙跑去，一時尋不著東街的汪大夫，卻把西街的牛醫王大夫請來了。差不多先生病在床上，知道尋錯了人；但病急了，身上痛苦，心裡想道：「好在王大夫和汪大夫也差不多，讓他治治看罷。」於是這位牛醫王大夫走進床前，用治牛的法子給差不多先生治病。不上一刻工夫，差不多先生就一命嗚呼了。`,
+
+      ershi: `余憶童稚時，能張目對日，明察秋毫。見藐小微物，必細察其紋理，故時有物外之趣。
+夏蚊成雷，私擬作群鶴舞空，心之所向，則或千或百果然鶴也。昂首觀之，項為之強。又留蚊於素帳中，徐噴以煙，使之沖煙飛鳴，作青雲白鶴觀，果如鶴唳雲端，為之怡然稱快。
+余常於土牆凹凸處、花臺小草叢雜處，蹲其身，使與臺齊，定神細視。以叢草為林，以蟲蟻為獸，以土礫凸者為丘，凹者為壑，神遊其中，怡然自得。
+一日，見二蟲鬥草間，觀之正濃，忽有龐然大物，拔山倒樹而來，蓋一癩蝦蟆也！舌一吐而二蟲盡為所吞。余年幼，方出神，不覺呀然驚恐；神定，捉蝦蟆，鞭數十，驅之別院。`,
+
+      koxinga: `明永曆十五年（1661年），延平王鄭成功為建立抗清復明基地，率領四百餘艘戰船、二萬五千名將士自金門料羅灣啟航，橫渡黑水溝進軍台灣。
+當時荷蘭東印度公司佔領大員（今安平）與赤崁已達三十八年。鄭成功軍隊藉由農曆四月初一的大潮，出其不意穿過鹿耳門水道登陸禾寮港，令荷蘭守軍大為震驚。
+荷蘭長官揆一（Frederik Coyett）率軍退守熱蘭遮城，並派戰艦赫克托號（Hector）迎戰。明鄭軍隊以靈活之火攻與陸海夾擊擊沉荷艦，包圍熱蘭遮城達九個月。
+其間，鄭成功招撫平埔原住民，嚴格約束軍隊不可搶掠百姓，並派軍屯田開墾。最終，揆一見大勢已去，於1662年2月開城投降，簽署條約撤出台灣。鄭成功收復台灣後，改赤崁為東都明京，設承天府與天興、萬年二縣，為台灣歷史揭開嶄新的一頁。`
+    };
+
+    // --- 2. INITIALIZATION ---
+    document.addEventListener('DOMContentLoaded', () => {
+      lucide.createIcons();
+      loadStorage();
+      renderFriendList();
+      selectChat(currentChatId);
+      updateProviderUI();
+    });
+
+    function loadStorage() {
+      // Load API Settings
+      const savedProvider = localStorage.getItem('puti_api_provider') || 'gemini';
+      const savedGeminiKey = localStorage.getItem('puti_gemini_key') || '';
+      const savedGroqKey = localStorage.getItem('puti_groq_key') || '';
+      const savedGeminiModel = localStorage.getItem('puti_gemini_model') || 'gemini-1.5-flash';
+      const savedGroqModel = localStorage.getItem('puti_groq_model') || 'llama-3.1-8b-instant';
+      const savedLevel = localStorage.getItem('puti_audience_level') || 'elementary';
+
+      const providerRadio = document.querySelector(`input[name="apiProvider"][value="${savedProvider}"]`);
+      if (providerRadio) providerRadio.checked = true;
+      document.getElementById('geminiApiKey').value = savedGeminiKey;
+      document.getElementById('groqApiKey').value = savedGroqKey;
+      document.getElementById('geminiModelSelect').value = savedGeminiModel;
+      document.getElementById('groqModelSelect').value = savedGroqModel;
+      document.getElementById('audienceLevel').value = savedLevel;
+
+      // Load Characters
+      const savedChars = localStorage.getItem('puti_characters');
+      if (savedChars) {
+        try {
+          characters = JSON.parse(savedChars);
+        } catch(e) {
+          characters = [...DEFAULT_CHARACTERS];
+        }
+      } else {
+        characters = [...DEFAULT_CHARACTERS];
+      }
+
+      // Load Histories
+      const savedHistory = localStorage.getItem('puti_chat_histories');
+      if (savedHistory) {
+        try {
+          chatHistories = JSON.parse(savedHistory);
+        } catch(e) {
+          chatHistories = {};
+        }
+      }
+
+      // Ensure each character has default first message if empty
+      characters.forEach(c => {
+        if (!chatHistories[c.id] || chatHistories[c.id].length === 0) {
+          chatHistories[c.id] = [
+            {
+              role: 'assistant',
+              text: c.firstMessage || `你好！我是${c.name}。很高興穿越時空與你相遇，你想聊些什麼呢？（輸入 1~9 可快速求知）`,
+              time: formatCurrentTime()
+            }
+          ];
+        }
+      });
+
+      updateEngineLabel();
+    }
+
+    function saveStorage() {
+      localStorage.setItem('puti_characters', JSON.stringify(characters));
+      localStorage.setItem('puti_chat_histories', JSON.stringify(chatHistories));
+    }
+
+    function formatCurrentTime() {
+      const now = new Date();
+      return `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`;
+    }
+
+    // --- 3. FRIEND LIST & NAVIGATION ---
+    function renderFriendList(filterText = '') {
+      const container = document.getElementById('friendListContainer');
+      container.innerHTML = '';
+
+      let list = characters.filter(c => {
+        if (currentCategory === 'builtin') return c.tag === 'builtin';
+        if (currentCategory === 'custom') return c.tag !== 'builtin';
+        return true;
+      });
+
+      if (filterText.trim()) {
+        const q = filterText.toLowerCase();
+        list = list.filter(c => 
+          c.name.toLowerCase().includes(q) || 
+          c.era.toLowerCase().includes(q) || 
+          (c.bio && c.bio.toLowerCase().includes(q))
+        );
+      }
+
+      document.getElementById('count-all').innerText = characters.length;
+
+      if (list.length === 0) {
+        container.innerHTML = `
+          <div class="p-8 text-center text-slate-400">
+            <i data-lucide="user-x" class="w-8 h-8 mx-auto mb-2 opacity-50"></i>
+            <p class="text-xs">沒有找到相符的人物</p>
+          </div>
+        `;
+        lucide.createIcons();
+        return;
+      }
+
+      list.forEach(c => {
+        const isActive = c.id === currentChatId;
+        const lastMsg = (chatHistories[c.id] && chatHistories[c.id].length > 0) 
+          ? chatHistories[c.id][chatHistories[c.id].length - 1] 
+          : { text: c.status, time: '' };
+
+        const item = document.createElement('div');
+        item.className = `p-3 flex items-center space-x-3 cursor-pointer transition border-l-4 ${
+          isActive 
+            ? 'bg-emerald-50/70 border-lineGreen' 
+            : 'border-transparent hover:bg-slate-50'
+        }`;
+        item.onclick = () => {
+          selectChat(c.id);
+          if (window.innerWidth < 768) {
+            toggleMobileSidebar(false);
+          }
+        };
+
+        item.innerHTML = `
+          <div class="relative shrink-0">
+            <div class="w-11 h-11 rounded-full flex items-center justify-center text-white font-bold text-sm shadow-sm" style="background-color: ${c.avatarBg || '#10b981'};">
+              ${c.avatarText || c.name.charAt(0)}
+            </div>
+            ${c.tag !== 'builtin' ? '<span class="absolute -top-1 -right-1 bg-amber-500 text-white text-[9px] px-1 rounded-full font-bold">課文</span>' : ''}
+          </div>
+          <div class="flex-1 min-w-0">
+            <div class="flex items-center justify-between mb-0.5">
+              <span class="font-bold text-slate-800 text-sm truncate flex items-center gap-1.5">
+                ${c.name}
+              </span>
+              <span class="text-[10px] text-slate-400 shrink-0">${lastMsg.time || ''}</span>
+            </div>
+            <p class="text-xs text-slate-500 truncate leading-snug">
+              ${lastMsg.text.replace(/\n/g, ' ')}
+            </p>
+          </div>
+          <button onclick="event.stopPropagation(); deleteFriendById('${c.id}')" class="opacity-0 group-hover:opacity-100 p-1 text-slate-300 hover:text-rose-500 hover:bg-rose-50 rounded transition" title="刪除好友">
+            <i data-lucide="x" class="w-3.5 h-3.5"></i>
+          </button>
+        `;
+        item.classList.add('group');
+        container.appendChild(item);
+      });
+
+      lucide.createIcons();
+    }
+
+    function switchCategory(cat) {
+      currentCategory = cat;
+      document.querySelectorAll('.cat-tab').forEach(b => {
+        b.className = 'cat-tab flex-1 py-1 px-2 font-medium rounded-md text-slate-600 hover:bg-slate-100 transition text-center';
+      });
+      const activeBtn = document.getElementById(`tab-${cat}`);
+      if (activeBtn) {
+        activeBtn.className = 'cat-tab flex-1 py-1 px-2 font-medium rounded-md text-lineGreen bg-lineGreenLight border border-lineGreen/30 transition text-center';
+      }
+      renderFriendList(document.getElementById('friendSearchInput').value);
+    }
+
+    function filterFriends() {
+      const q = document.getElementById('friendSearchInput').value;
+      renderFriendList(q);
+    }
+
+    function toggleMobileSidebar(show) {
+      const sb = document.getElementById('sidebar');
+      if (show) {
+        sb.classList.remove('-translate-x-full');
+      } else {
+        sb.classList.add('-translate-x-full');
+      }
+    }
+
+    // --- 4. CHAT ROOM RENDERING ---
+    function selectChat(charId) {
+      currentChatId = charId;
+      const char = characters.find(c => c.id === charId) || characters[0];
+      if (!char) return;
+
+      // Update Topbar
+      document.getElementById('chatName').innerText = char.name;
+      document.getElementById('chatEraBadge').innerText = char.era || '歷史人物';
+      document.getElementById('chatStatus').innerText = char.status || '';
+      
+      const avatarEl = document.getElementById('chatAvatar');
+      avatarEl.style.backgroundColor = char.avatarBg || '#10b981';
+      avatarEl.innerText = char.avatarText || char.name.charAt(0);
+
+      // Render Dynamic Suggestion Pills
+      const suggestionsEl = document.getElementById('dynamicSuggestions');
+      suggestionsEl.innerHTML = '';
+      const list = char.suggestions || ['生平事蹟', '思想理念', '課文情境', '輸入 1 求知'];
+      list.forEach(s => {
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'px-2.5 py-1 bg-slate-100 hover:bg-emerald-50 hover:text-lineGreen hover:border-lineGreen text-slate-600 rounded-full border border-slate-200 transition shrink-0 font-medium active:scale-95';
+        btn.innerText = s;
+        btn.onclick = () => {
+          document.getElementById('userInput').value = s;
+          handleSendMessage();
+        };
+        suggestionsEl.appendChild(btn);
+      });
+
+      // Render Messages
+      renderMessages();
+      renderFriendList(document.getElementById('friendSearchInput').value);
+    }
+
+    function renderMessages() {
+      const container = document.getElementById('messagesContainer');
+      container.innerHTML = '';
+      const history = chatHistories[currentChatId] || [];
+
+      // Time stamp divider at top
+      const divider = document.createElement('div');
+      divider.className = 'flex justify-center my-2';
+      divider.innerHTML = `<span class="bg-black/20 text-white text-[10px] px-3 py-0.5 rounded-full backdrop-blur-xs">超時空對話連線建立中</span>`;
+      container.appendChild(divider);
+
+      const char = characters.find(c => c.id === currentChatId);
+
+      history.forEach((msg, idx) => {
+        const msgRow = document.createElement('div');
+        msgRow.className = `flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'} items-end space-x-2 msg-appear`;
+
+        if (msg.role === 'user') {
+          // User Bubble (LINE Right Side Green Bubble)
+          msgRow.innerHTML = `
+            <span class="text-[10px] text-slate-100/90 font-medium mb-1 drop-shadow-xs">${msg.time || ''}</span>
+            <div class="max-w-[78%] sm:max-w-[65%] bg-lineBubbleGreen text-slate-900 px-4 py-2.5 rounded-2xl rounded-tr-xs text-xs md:text-sm shadow-md whitespace-pre-wrap leading-relaxed select-text font-normal">
+              ${escapeHtml(msg.text)}
+            </div>
+          `;
+        } else {
+          // Assistant / Character Bubble (LINE Left Side White Bubble)
+          msgRow.innerHTML = `
+            <div class="w-8 h-8 rounded-full flex items-center justify-center text-white font-bold text-xs shrink-0 self-start mt-0.5 shadow-sm" style="background-color: ${char?.avatarBg || '#10b981'};">
+              ${char?.avatarText || char?.name?.charAt(0) || '友'}
+            </div>
+            <div class="max-w-[80%] sm:max-w-[70%] space-y-1">
+              <span class="text-[11px] font-bold text-white/90 drop-shadow-xs ml-0.5">${escapeHtml(char?.name || '歷史好友')}</span>
+              <div class="bg-lineBubbleWhite text-slate-800 px-4 py-2.5 rounded-2xl rounded-tl-xs text-xs md:text-sm shadow-md whitespace-pre-wrap leading-relaxed select-text border border-slate-100">
+                ${formatAssistantMessage(msg.text)}
+              </div>
+            </div>
+            <div class="flex flex-col items-start gap-1 self-end mb-1">
+              <span class="text-[10px] text-slate-100/90 font-medium drop-shadow-xs">${msg.time || ''}</span>
+              <button onclick="speakText('${escapeForJs(msg.text)}')" class="text-white/80 hover:text-white p-1 rounded hover:bg-black/10 transition" title="朗讀這段話">
+                <i data-lucide="volume-2" class="w-3.5 h-3.5"></i>
+              </button>
+            </div>
+          `;
+        }
+        container.appendChild(msgRow);
+      });
+
+      lucide.createIcons();
+      scrollToBottom();
+    }
+
+    function formatAssistantMessage(text) {
+      // Basic markdown styling for numbered lists, bold text, etc.
+      let sanitized = escapeHtml(text);
+      // bold
+      sanitized = sanitized.replace(/\*\*(.*?)\*\*/g, '<strong class="font-bold text-slate-900">$1</strong>');
+      return sanitized;
+    }
+
+    function escapeHtml(str) {
+      if (!str) return '';
+      return str.replace(/[&<>"']/g, m => ({
+        '&': '&amp;',
+        '<': '&lt;',
+        '>': '&gt;',
+        '"': '&quot;',
+        "'": '&#039;'
+      })[m]);
+    }
+
+    function escapeForJs(str) {
+      if (!str) return '';
+      return str.replace(/'/g, "\\'").replace(/\n/g, " ");
+    }
+
+    function scrollToBottom() {
+      const container = document.getElementById('messagesContainer');
+      container.scrollTop = container.scrollHeight;
+    }
+
+    // --- 5. SEND MESSAGE & API INTEGRATION ---
+    async function handleSendMessage(e) {
+      if (e) e.preventDefault();
+      if (isGenerating) return;
+
+      const input = document.getElementById('userInput');
+      const text = input.value.trim();
+      if (!text) return;
+
+      input.value = '';
+      input.style.height = 'auto';
+
+      // 1. Add user message
+      const timeStr = formatCurrentTime();
+      if (!chatHistories[currentChatId]) chatHistories[currentChatId] = [];
+      chatHistories[currentChatId].push({
+        role: 'user',
+        text: text,
+        time: timeStr
+      });
+      renderMessages();
+      saveStorage();
+
+      // Check API Key
+      const provider = getActiveProvider();
+      const apiKey = provider === 'gemini' 
+        ? localStorage.getItem('puti_gemini_key') 
+        : localStorage.getItem('puti_groq_key');
+
+      if (!apiKey) {
+        showTypingIndicator();
+        setTimeout(() => {
+          removeTypingIndicator();
+          appendBotMessage(`⚠️ 尚未設定 ${provider.toUpperCase()} API Key 喔！\n請點擊右上角「設定 API Key」填入免費 Key，即可啟動與歷史名人的時空連線。`);
+        }, 600);
+        return;
+      }
+
+      // 2. Prepare AI Prompt
+      showTypingIndicator();
+      isGenerating = true;
+
+      try {
+        const char = characters.find(c => c.id === currentChatId);
+        const audienceLevel = localStorage.getItem('puti_audience_level') || 'elementary';
+        
+        let levelPrompt = '學生為國小中高年級，請用生動親切、淺顯易懂、富含啟發性與同理心的繁體中文回應。';
+        if (audienceLevel === 'junior') levelPrompt = '學生為國中/高中生，請融入更深刻的歷史背景、思想批判與跨領域分析。';
+        if (audienceLevel === 'scholar') levelPrompt = '以大師研討模式回應，展現古典文風、深厚學養與犀利的思辨力。';
+
+        let characterPrompt = `
+【當前對話角色】
+姓名：${char.name}
+時代/背景：${char.era}
+生平與核心特質：${char.bio}
+核心思想：${char.coreThought}
+個性狀態：${char.status}
+${char.sourceText ? `【限定課文/文本參照（重要：請嚴格依據下列文本設定回應，不可憑空捏造）：】\n${char.sourceText}` : ''}
+
+【學生年齡難度適配】：${levelPrompt}
+`;
+
+        const fullSystemInstruction = `${SYSTEM_ROLE_TEMPLATE}\n\n${characterPrompt}`;
+        
+        // Build message payload (last 10 turns)
+        const recentHistory = chatHistories[currentChatId].slice(-10);
+
+        let responseText = '';
+        if (provider === 'gemini') {
+          responseText = await callGeminiAPI(apiKey, fullSystemInstruction, recentHistory);
+        } else {
+          responseText = await callGroqAPI(apiKey, fullSystemInstruction, recentHistory);
+        }
+
+        removeTypingIndicator();
+        appendBotMessage(responseText);
+
+        if (speechEnabled) {
+          speakText(responseText);
+        }
+
+      } catch (err) {
+        console.error('API Error:', err);
+        removeTypingIndicator();
+        appendBotMessage(`抱歉，時空信號發生干擾（${err.message || '連線錯誤'}），請檢查 API Key 是否正確或網路連線。`);
+      } finally {
+        isGenerating = false;
+      }
+    }
+
+    function appendBotMessage(text) {
+      if (!chatHistories[currentChatId]) chatHistories[currentChatId] = [];
+      chatHistories[currentChatId].push({
+        role: 'assistant',
+        text: text,
+        time: formatCurrentTime()
+      });
+      renderMessages();
+      renderFriendList(document.getElementById('friendSearchInput').value);
+      saveStorage();
+    }
+
+    function showTypingIndicator() {
+      const container = document.getElementById('messagesContainer');
+      const typingEl = document.createElement('div');
+      typingEl.id = 'typingIndicator';
+      typingEl.className = 'flex items-center space-x-2 msg-appear';
+      typingEl.innerHTML = `
+        <div class="w-8 h-8 rounded-full bg-slate-300 flex items-center justify-center text-white text-xs">
+          <i data-lucide="loader-2" class="w-4 h-4 animate-spin text-slate-600"></i>
+        </div>
+        <div class="bg-white/90 backdrop-blur px-4 py-2.5 rounded-2xl rounded-tl-xs shadow-md flex items-center space-x-1.5 border border-slate-100">
+          <span class="w-2 h-2 rounded-full bg-emerald-500 typing-dot"></span>
+          <span class="w-2 h-2 rounded-full bg-emerald-500 typing-dot"></span>
+          <span class="w-2 h-2 rounded-full bg-emerald-500 typing-dot"></span>
+          <span class="text-xs text-slate-500 ml-1">正在輸入訊息...</span>
+        </div>
+      `;
+      container.appendChild(typingEl);
+      lucide.createIcons();
+      scrollToBottom();
+    }
+
+    function removeTypingIndicator() {
+      const el = document.getElementById('typingIndicator');
+      if (el) el.remove();
+    }
+
+    // --- 6. AI API CALL IMPLEMENTATIONS ---
+    async function callGeminiAPI(apiKey, systemInstruction, history) {
+      const model = localStorage.getItem('puti_gemini_model') || 'gemini-1.5-flash';
+      const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
+
+      const contents = history.map(item => ({
+        role: item.role === 'user' ? 'user' : 'model',
+        parts: [{ text: item.text }]
+      }));
+
+      const body = {
+        system_instruction: {
+          parts: [{ text: systemInstruction }]
+        },
+        contents: contents,
+        generationConfig: {
+          temperature: 0.85,
+          topP: 0.95,
+          maxOutputTokens: 1000
+        }
+      };
+
+      const res = await fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body)
+      });
+
+      if (!res.ok) {
+        const errorData = await res.json().catch(() => ({}));
+        throw new Error(errorData.error?.message || `HTTP ${res.status}`);
+      }
+
+      const data = await res.json();
+      return data.candidates?.[0]?.content?.parts?.[0]?.text || '（先賢沉思不語...）';
+    }
+
+    async function callGroqAPI(apiKey, systemInstruction, history) {
+      let model = localStorage.getItem('puti_groq_model') || 'llama-3.1-8b-instant';
+      // If user had the decommissioned model stored, auto-correct it
+      if (model.includes('mixtral') || model.includes('llama-3.2-1b') || model.includes('llama-3.2-3b')) {
+        model = 'llama-3.1-8b-instant';
+        localStorage.setItem('puti_groq_model', 'llama-3.1-8b-instant');
+      }
+
+      const url = `https://api.groq.com/openai/v1/chat/completions`;
+
+      const messages = [
+        { role: 'system', content: systemInstruction },
+        ...history.map(item => ({
+          role: item.role === 'user' ? 'user' : 'assistant',
+          content: item.text
+        }))
+      ];
+
+      // Official Groq active candidate models (absolutely NO decommissioned models)
+      const candidateModels = [
+        model,
+        'llama-3.1-8b-instant',
+        'llama-3.3-70b-versatile',
+        'llama-3.1-70b-versatile',
+        'gemma2-9b-it'
+      ];
+      // remove duplicates
+      const uniqueModels = [...new Set(candidateModels.filter(Boolean))];
+
+      let lastError = null;
+
+      for (const m of uniqueModels) {
+        try {
+          const res = await fetch(url, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${apiKey.trim()}`
+            },
+            body: JSON.stringify({
+              model: m,
+              messages: messages,
+              temperature: 0.8,
+              max_tokens: 1000
+            })
+          });
+
+          if (res.ok) {
+            const data = await res.json();
+            // Automatically update storage if a fallback succeeded
+            if (m !== model) {
+              console.log(`Auto switched Groq model from ${model} to ${m}`);
+              localStorage.setItem('puti_groq_model', m);
+              const select = document.getElementById('groqModelSelect');
+              if (select) select.value = m;
+            }
+            return data.choices?.[0]?.message?.content || '（思考中...）';
+          } else {
+            const errJson = await res.json().catch(() => ({}));
+            lastError = errJson.error?.message || `HTTP ${res.status}`;
+            console.warn(`Groq model ${m} failed:`, lastError);
+            // If it's an auth error (invalid api key), don't loop through other models
+            if (res.status === 401 || lastError.includes('Invalid API Key') || lastError.includes('authentication')) {
+              throw new Error(`Groq API Key 無效或未授權，請確認 Key 是否複製完整 (gsk_...)`);
+            }
+          }
+        } catch (fetchErr) {
+          if (fetchErr.message && fetchErr.message.includes('API Key 無效')) throw fetchErr;
+          lastError = fetchErr.message;
+        }
+      }
+
+      throw new Error(`Groq 請求失敗：${lastError}。建議切換至 Gemini 或檢查 Groq 額度`);
+    }
+
+    // --- 7. ADD FRIEND MODAL (BY NAME OR BY TEXT) ---
+    function openAddFriendModal() {
+      document.getElementById('addFriendModal').classList.remove('hidden');
+      document.getElementById('extractResultsContainer').classList.add('hidden');
+    }
+
+    function closeAddFriendModal() {
+      document.getElementById('addFriendModal').classList.add('hidden');
+    }
+
+    // Switch between "Quick by Name" and "From Text"
+    function switchAddFriendTab(tab) {
+      const byNameTab = document.getElementById('tabAddByName');
+      const byTextTab = document.getElementById('tabAddByText');
+      const byNamePane = document.getElementById('addByNamePane');
+      const byTextPane = document.getElementById('addByTextPane');
+
+      if (tab === 'byName') {
+        byNameTab.className = 'flex-1 py-3 px-4 font-bold text-lineGreen border-b-2 border-lineGreen bg-white flex items-center justify-center gap-1.5 transition';
+        byTextTab.className = 'flex-1 py-3 px-4 font-bold text-slate-500 hover:text-slate-800 flex items-center justify-center gap-1.5 transition';
+        byNamePane.classList.remove('hidden');
+        byTextPane.classList.add('hidden');
+      } else {
+        byTextTab.className = 'flex-1 py-3 px-4 font-bold text-lineGreen border-b-2 border-lineGreen bg-white flex items-center justify-center gap-1.5 transition';
+        byNameTab.className = 'flex-1 py-3 px-4 font-bold text-slate-500 hover:text-slate-800 flex items-center justify-center gap-1.5 transition';
+        byTextPane.classList.remove('hidden');
+        byNamePane.classList.add('hidden');
+      }
+    }
+
+    function fillQuickName(name, era, status) {
+      document.getElementById('quickNameInput').value = name;
+      document.getElementById('quickEraInput').value = era || '';
+      document.getElementById('quickStatusInput').value = status || '';
+    }
+
+    // Add friend directly by name (AI auto-generates profile & greeting)
+    async function confirmAddFriendByName() {
+      const name = document.getElementById('quickNameInput').value.trim();
+      if (!name) {
+        alert('請填寫名人或角色的姓名喔！');
+        return;
+      }
+
+      const era = document.getElementById('quickEraInput').value.trim();
+      const customStatus = document.getElementById('quickStatusInput').value.trim();
+
+      const btn = document.getElementById('btnAddByNameSubmit');
+      const originBtnHtml = btn.innerHTML;
+      btn.innerHTML = `<i data-lucide="loader-2" class="w-4 h-4 animate-spin"></i><span>AI 生成專屬 LINE 名片中...</span>`;
+      btn.disabled = true;
+      lucide.createIcons();
+
+      const provider = getActiveProvider();
+      const apiKey = provider === 'gemini' 
+        ? localStorage.getItem('puti_gemini_key') 
+        : localStorage.getItem('puti_groq_key');
+
+      let friendProfile = {
+        name: name,
+        era: era || '知名人物',
+        status: customStatus || `你好！我是${name}，很高興加你為 LINE 好友！`,
+        bio: `關於${name}的生活與經歷`,
+        coreThought: '分享智慧與想法',
+        firstMessage: `嗨！我是${name}。很高興透過超時空 LINE 認識你！今天想和我聊些什麼呢？（輸入 1~9 可快速求知）`
+      };
+
+      if (apiKey) {
+        try {
+          const prompt = `使用者想在 LINE 聊天室加「${name}」為好友。
+請根據這位人物的生平、真實身分與名言，產生一張專屬的 LINE 名片與開場白。
+【提示資訊】：頭銜時代可參考「${era || '由你依真實情況推斷'}」，名言可參考「${customStatus || '由你依真實情況推斷'}」。
+
+請嚴格輸出合法的 JSON 物件格式（不要包含任何 markdown 標籤或其餘文字，直接回傳 { ... }）：
+{
+  "name": "${name}",
+  "era": "真實身分或領域頭銜（例如：輝達創辦人 / AI 教父、或盛唐浪漫詩人）",
+  "status": "代表性座右銘或個性簽名（15字以內，幽默或有深度）",
+  "bio": "生平簡介或主要成就特色（50字以內）",
+  "coreThought": "核心精神與代表思想",
+  "firstMessage": "符合該人物生活口氣的 LINE 第一句招呼訊息（生動親切、像朋友打招呼，結尾提醒可輸入1~9求知）"
+}`;
+
+          let jsonStr = '';
+          if (provider === 'gemini') {
+            jsonStr = await callGeminiAPI(apiKey, '你是一位專門設計生動角色扮演名片的專家，只回傳合法的 JSON 物件。', [{ role: 'user', text: prompt }]);
+          } else {
+            jsonStr = await callGroqAPI(apiKey, '你是一位專門設計生動角色扮演名片的專家，只回傳合法的 JSON 物件。', [{ role: 'user', text: prompt }]);
+          }
+
+          jsonStr = jsonStr.replace(/```json/gi, '').replace(/```/g, '').trim();
+          const match = jsonStr.match(/\{[\s\S]*\}/);
+          if (match) {
+            const parsed = JSON.parse(match[0]);
+            friendProfile = { ...friendProfile, ...parsed };
+          }
+        } catch (err) {
+          console.warn('AI generate name card error, using default template:', err);
+        }
+      }
+
+      const newId = 'friend_' + Date.now();
+      const newChar = {
+        id: newId,
+        name: friendProfile.name || name,
+        era: friendProfile.era || (era || '當代名人'),
+        tag: 'custom',
+        avatarBg: getRandomColor(characters.length),
+        avatarText: (friendProfile.name || name).charAt(0),
+        status: friendProfile.status || '生活是一場精彩的探險！',
+        bio: friendProfile.bio || `${name}的精彩生平`,
+        coreThought: friendProfile.coreThought || '追求卓越與熱情',
+        suggestions: ['您平常的一天是怎麼度過的？', '您面對挑戰時的心態是什麼？', '輸入 1 了解身分', '輸入 3 代表名言'],
+        firstMessage: friendProfile.firstMessage || `嗨！我是${name}。很高興透過超時空 LINE 和你連線，想聊點什麼？`
+      };
+
+      characters.unshift(newChar);
+      chatHistories[newId] = [
+        {
+          role: 'assistant',
+          text: newChar.firstMessage,
+          time: formatCurrentTime()
+        }
+      ];
+      saveStorage();
+
+      btn.innerHTML = originBtnHtml;
+      btn.disabled = false;
+      closeAddFriendModal();
+      switchCategory('all');
+      selectChat(newId);
+      renderFriendList();
+
+      // Confetti celebration
+      if (window.confetti) {
+        confetti({ particleCount: 50, spread: 60, origin: { y: 0.6 } });
+      }
+
+      // Reset inputs
+      document.getElementById('quickNameInput').value = '';
+      document.getElementById('quickEraInput').value = '';
+      document.getElementById('quickStatusInput').value = '';
+
+      alert(`🎉 成功將「${newChar.name}」加為 LINE 好友！`);
+    }
+
+    // --- DELETE FRIEND & CHAT MANAGEMENT ---
+    function deleteCurrentFriend() {
+      const char = characters.find(c => c.id === currentChatId);
+      if (!char) return;
+
+      if (characters.length <= 1) {
+        alert('名單中至少要保留一位好友喔！');
+        return;
+      }
+
+      if (confirm(`確定要刪除好友「${char.name}」嗎？\n（此操作將一併移除與該好友的所有對話紀錄）`)) {
+        deleteFriendById(currentChatId);
+      }
+    }
+
+    function deleteFriendById(idToDelete) {
+      const char = characters.find(c => c.id === idToDelete);
+      const name = char ? char.name : '此好友';
+
+      characters = characters.filter(c => c.id !== idToDelete);
+      delete chatHistories[idToDelete];
+      saveStorage();
+
+      // If deleted active friend, switch to first friend
+      if (currentChatId === idToDelete) {
+        currentChatId = characters[0]?.id || '';
+        if (currentChatId) {
+          selectChat(currentChatId);
+        }
+      }
+
+      renderFriendList();
+      alert(`已成功刪除「${name}」！`);
+    }
+
+    function loadSampleText(key) {
+      const sample = SAMPLE_TEXTS[key];
+      if (sample) {
+        const input = document.getElementById('extractTextInput');
+        input.value = sample;
+        document.getElementById('textCharCount').innerText = sample.length + ' 字';
+      }
+    }
+
+    let detectedCharactersList = [];
+
+    async function analyzeTextCharacters() {
+      const text = document.getElementById('extractTextInput').value.trim();
+      if (!text) {
+        alert('請先貼上課文或故事內容喔！');
+        return;
+      }
+
+      const btn = document.getElementById('btnAnalyzeText');
+      const originalText = btn.innerHTML;
+      btn.innerHTML = `<i data-lucide="loader-2" class="w-4 h-4 animate-spin"></i><span>AI 分析角色中...</span>`;
+      btn.disabled = true;
+      lucide.createIcons();
+
+      const provider = getActiveProvider();
+      const apiKey = provider === 'gemini' 
+        ? localStorage.getItem('puti_gemini_key') 
+        : localStorage.getItem('puti_groq_key');
+
+      try {
+        let extractedData = [];
+
+        if (apiKey) {
+          // Use AI to extract structured character JSON
+          const prompt = `請仔細閱讀以下文章/故事/課文，提取出文中出現的所有「具體角色名稱」（例如：松鼠先生、小刺蝟、朱自清的父親、差不多先生，請務必抓出真實角色名字或動物稱呼，絕對不要使用「文本主角」、「文章角色」等籠統代稱！）：
+
+【文章內容】
+${text}
+
+請嚴格輸出合法的 JSON 陣列格式，直接輸出 [ ... ]，不要包含任何 markdown 或解說文字：
+[
+  {
+    "name": "具體角色名稱（如：松鼠先生、熊大廚）",
+    "era": "角色身分或特徵（如：森林烘焙師 / 熱愛分享）",
+    "status": "代表性口頭禪或一句話狀態（如：今天又烤了香噴噴的麵包喔！）",
+    "bio": "在故事中的經歷、性格或所作所為",
+    "coreThought": "這個角色帶來的啟發或心中的想法",
+    "firstMessage": "符合該角色性格與口吻的 LINE 聊天招呼（例：嗨！我是松鼠先生，聞到我烤的麵包香味了嗎？）"
+  }
+]`;
+
+          let jsonStr = '';
+          if (provider === 'gemini') {
+            jsonStr = await callGeminiAPI(apiKey, '你是一位專門分析課文與繪本故事的專家，能敏銳抓出故事中的每個具體角色名稱，只回傳 JSON 格式。', [{ role: 'user', text: prompt }]);
+          } else {
+            jsonStr = await callGroqAPI(apiKey, '你是一位專門分析課文與繪本故事的專家，能敏銳抓出故事中的每個具體角色名稱，只回傳 JSON 格式。', [{ role: 'user', text: prompt }]);
+          }
+
+          // Clean JSON string
+          jsonStr = jsonStr.replace(/```json/gi, '').replace(/```/g, '').trim();
+          const match = jsonStr.match(/\[[\s\S]*\]/);
+          if (match) {
+            extractedData = JSON.parse(match[0]);
+          } else {
+            extractedData = JSON.parse(jsonStr);
+          }
+        }
+
+        // If no API key or AI parsing yielded empty, run enhanced heuristic extraction
+        if (!extractedData || extractedData.length === 0) {
+          extractedData = smartExtractHeuristic(text);
+        }
+
+        detectedCharactersList = extractedData.map((c, i) => {
+          const charName = (c.name && c.name !== '文本主角' && c.name !== '文章角色') ? c.name : extractMainNameFromText(text, i);
+          return {
+            id: 'custom_' + Date.now() + '_' + i,
+            name: charName,
+            era: c.era || '故事角色',
+            tag: 'custom',
+            avatarBg: getRandomColor(i),
+            avatarText: charName.charAt(0) || '友',
+            status: c.status || '很高興在 LINE 遇見你！',
+            bio: c.bio || '出自故事課文文本',
+            coreThought: c.coreThought || '溫暖親切的故事夥伴',
+            suggestions: ['說說你的故事吧', '你平常最喜歡做什麼？', '輸入 1 看我的自我介紹', '輸入 4 分享小祕密'],
+            firstMessage: c.firstMessage || `嗨！我是${charName}，很高興加你為 LINE 好友！想和我聊聊什麼呢？`,
+            sourceText: text
+          };
+        });
+
+        renderExtractedChecklist();
+
+      } catch (err) {
+        console.error('Extraction error:', err);
+        // Fallback to local smart heuristic extraction
+        detectedCharactersList = smartExtractHeuristic(text);
+        renderExtractedChecklist();
+      } finally {
+        btn.innerHTML = originalText;
+        btn.disabled = false;
+        lucide.createIcons();
+      }
+    }
+
+    // Helper: Intelligent name finder from story text
+    function extractMainNameFromText(text, index) {
+      // Common animals or titles
+      const candidates = [
+        '松鼠先生', '松鼠', '小松鼠', '熊先生', '大熊', '小熊', '小兔子', '兔子', '小刺蝟', '刺蝟',
+        '小狐狸', '狐狸', '獅子', '小鳥', '小狗', '貓咪', '老爺爺', '老奶奶', '國王', '小王子',
+        '差不多先生', '父親', '小明', '小華', '阿榮老師'
+      ];
+      for (const name of candidates) {
+        if (text.includes(name)) return name;
+      }
+      // Regex search for "XX先生" / "小XX" / "大XX"
+      const titleMatch = text.match(/([\u4e00-\u9fa5]{1,3}(先生|小姐|媽媽|爸爸|阿姨|叔叔|爺爺|奶奶|隊長|大師|師父))/);
+      if (titleMatch && titleMatch[1]) return titleMatch[1];
+
+      const animalMatch = text.match(/(小[\u4e00-\u9fa5]{1,2}|大[\u4e00-\u9fa5]{1,2})/);
+      if (animalMatch && animalMatch[1]) return animalMatch[1];
+
+      return `故事夥伴${index + 1}`;
+    }
+
+    function smartExtractHeuristic(text) {
+      const list = [];
+      const mainName = extractMainNameFromText(text, 0);
+
+      // Check for bread or squirrel theme
+      if (text.includes('松鼠') || text.includes('麵包') || text.includes('森林')) {
+        list.push({
+          name: mainName.includes('松鼠') ? mainName : '松鼠先生',
+          era: '森林烘焙師 / 溫暖熱情',
+          status: '剛出爐的香脆麵包，想和森林裡最好的朋友一起分享！🥖',
+          bio: '森林裡的烘焙好手，每天用心揉麵糰、烤麵包，把幸福與香氣分享給大家。',
+          coreThought: '分享帶來最大的快樂，用心製作能溫暖每顆心。',
+          firstMessage: `嗨！我是松鼠先生！今天烤了剛出爐的金黃麵包，正想找朋友一起品嚐呢！你喜歡吃什麼口味的麵包？`
+        });
+      } else if (text.includes('背影') || text.includes('父親')) {
+        list.push({
+          name: '朱自清的父親',
+          era: '民國初年 / 樸實慈父',
+          status: '事已至此，不必難過，好在天無絕人之路！',
+          bio: '《背影》中為兒子買橘子、穿過鐵道送別的父親，展現深沉內斂的父愛。',
+          coreThought: '父愛如山，不管生活多艱辛都要把最好的留給孩子。',
+          firstMessage: `孩子，我買了朱紅的橘子放在你皮大衣上了。路上要小心，到那邊記得來信報平安！你想問為父什麼事？`
+        });
+      } else if (text.includes('差不多')) {
+        list.push({
+          name: '差不多先生',
+          era: '差不多主義代表',
+          status: '凡事只要差不多，就好了。何必太精明呢？',
+          bio: '胡適筆下的寓言人物，凡事不求甚解、苟且敷衍。',
+          coreThought: '做人不要太講究，差不多過得去就好（反諷警世）。',
+          firstMessage: `哎呀，你好你好！我是差不多先生。哎，這世上的事情何必太認真呢？差不多就好了嘛！`
+        });
+      } else {
+        list.push({
+          name: mainName,
+          era: '故事登場主角',
+          status: '很高興在 LINE 和你相遇！隨時找我聊天吧～',
+          bio: '來自故事課文中的溫暖角色。',
+          coreThought: '分享故事與生活體悟',
+          firstMessage: `嗨～我是${mainName}！讀了這段故事後，你有什麼想法想和我聊聊嗎？`
+        });
+      }
+
+      return list.map((c, i) => ({
+        id: 'custom_' + Date.now() + '_' + i,
+        name: c.name,
+        era: c.era,
+        tag: 'custom',
+        avatarBg: getRandomColor(i),
+        avatarText: c.name.charAt(0),
+        status: c.status,
+        bio: c.bio,
+        coreThought: c.coreThought,
+        suggestions: ['說說你的故事吧', '你平常最喜歡做什麼？', '輸入 1 看我的自我介紹', '輸入 4 分享小祕密'],
+        firstMessage: c.firstMessage,
+        sourceText: text
+      }));
+    }
+
+    function getRandomColor(seed) {
+      const colors = ['#059669', '#2563eb', '#7c3aed', '#db2777', '#ea580c', '#0891b2', '#4f46e5'];
+      return colors[seed % colors.length];
+    }
+
+    function renderExtractedChecklist() {
+      const container = document.getElementById('extractedCharactersList');
+      container.innerHTML = '';
+      document.getElementById('extractResultsContainer').classList.remove('hidden');
+      document.getElementById('detectedCountText').innerText = `共 ${detectedCharactersList.length} 位角色`;
+
+      detectedCharactersList.forEach((char, idx) => {
+        const item = document.createElement('div');
+        item.className = 'flex items-center space-x-3 p-3 bg-slate-50 border border-slate-200 rounded-xl hover:bg-emerald-50/40 transition cursor-pointer';
+        item.innerHTML = `
+          <input type="checkbox" id="check_char_${idx}" checked class="w-4 h-4 text-lineGreen focus:ring-lineGreen rounded">
+          <div class="w-9 h-9 rounded-full flex items-center justify-center text-white font-bold text-xs shrink-0" style="background-color: ${char.avatarBg};">
+            ${char.avatarText}
+          </div>
+          <div class="flex-1 min-w-0">
+            <div class="flex items-center space-x-2">
+              <span class="font-bold text-slate-800 text-xs">${char.name}</span>
+              <span class="text-[10px] px-1.5 py-0.2 rounded bg-slate-200 text-slate-700 font-medium">${char.era}</span>
+            </div>
+            <p class="text-[11px] text-slate-500 truncate">${char.bio}</p>
+          </div>
+        `;
+        container.appendChild(item);
+      });
+    }
+
+    function confirmAddExtractedCharacters() {
+      const selected = [];
+      detectedCharactersList.forEach((char, idx) => {
+        const cb = document.getElementById(`check_char_${idx}`);
+        if (cb && cb.checked) {
+          selected.push(char);
+        }
+      });
+
+      if (selected.length === 0) {
+        alert('請至少勾選一位要加入的人物喔！');
+        return;
+      }
+
+      // Add to main character list
+      characters.unshift(...selected);
+      saveStorage();
+
+      // Fire confetti
+      if (window.confetti) {
+        confetti({
+          particleCount: 50,
+          spread: 60,
+          origin: { y: 0.6 }
+        });
+      }
+
+      closeAddFriendModal();
+      switchCategory('custom');
+      selectChat(selected[0].id);
+      renderFriendList();
+
+      alert(`🎉 成功加 ${selected.length} 位角色為 LINE 好友！已為您自動切換至 ${selected[0].name} 的對話視窗。`);
+    }
+
+    // --- 8. GROUP CHAT (跨時空名人跨界大亂鬥) ---
+    function openGroupModal() {
+      document.getElementById('groupModal').classList.remove('hidden');
+      const listContainer = document.getElementById('groupMemberSelectorList');
+      listContainer.innerHTML = '';
+
+      characters.forEach((char, idx) => {
+        const item = document.createElement('label');
+        item.className = 'flex items-center space-x-2 p-2 hover:bg-indigo-50 rounded-lg cursor-pointer transition text-xs';
+        item.innerHTML = `
+          <input type="checkbox" name="groupMember" value="${char.id}" ${idx < 3 ? 'checked' : ''} class="text-indigo-600 rounded">
+          <span class="font-medium text-slate-800 truncate">${char.name}</span>
+        `;
+        listContainer.appendChild(item);
+      });
+    }
+
+    function closeGroupModal() {
+      document.getElementById('groupModal').classList.add('hidden');
+    }
+
+    function createGroupChat() {
+      const checkedBoxes = document.querySelectorAll('input[name="groupMember"]:checked');
+      const selectedIds = Array.from(checkedBoxes).map(cb => cb.value);
+
+      if (selectedIds.length < 2) {
+        alert('群組至少要拉 2 位名人進來才能展開精彩討論喔！');
+        return;
+      }
+
+      const groupName = document.getElementById('groupNameInput').value.trim() || '超時空跨界群組';
+      const selectedChars = characters.filter(c => selectedIds.includes(c.id));
+      const memberNames = selectedChars.map(c => c.name).join('、');
+
+      const groupId = 'group_' + Date.now();
+      const newGroup = {
+        id: groupId,
+        name: groupName,
+        era: `${selectedChars.length} 人大群`,
+        tag: 'custom',
+        avatarBg: '#4f46e5',
+        avatarText: '群',
+        status: `成員：${memberNames}`,
+        bio: `匯聚各界豪傑的跨時空圓桌會：${memberNames}`,
+        coreThought: '多元視角互相辯論交流',
+        suggestions: ['各位對「現代AI發展」有何看法？', '什麼是真正的成功？', '請大家各自用一句話總結人生觀'],
+        firstMessage: `【系統提示】：已成功建立「${groupName}」群組！\n本群成員包括：${memberNames}。\n請學生拋出任何問題，群內的名人們將跨越時空為你辯論與解答！`
+      };
+
+      characters.unshift(newGroup);
+      saveStorage();
+      closeGroupModal();
+      selectChat(groupId);
+      renderFriendList();
+
+      if (window.confetti) {
+        confetti({ particleCount: 60, spread: 70, origin: { y: 0.6 } });
+      }
+    }
+
+    // --- 9. PROFILE & QUICK ACTIONS ---
+    function openProfileModal() {
+      const char = characters.find(c => c.id === currentChatId);
+      if (!char) return;
+
+      document.getElementById('profileName').innerText = char.name;
+      document.getElementById('profileEra').innerText = `${char.era} ${char.tag === 'custom' ? '(課文/自訂角色)' : ''}`;
+      document.getElementById('profileStatusQuote').innerText = `「${char.status}」`;
+      document.getElementById('profileBio').innerText = char.bio || '暫無生平資料';
+      document.getElementById('profileCoreThought').innerText = char.coreThought || '暫無核心思想紀錄';
+
+      const avatarEl = document.getElementById('profileAvatar');
+      avatarEl.style.backgroundColor = char.avatarBg || '#10b981';
+      avatarEl.innerText = char.avatarText || char.name.charAt(0);
+
+      const sourceEl = document.getElementById('profileSourceTextContainer');
+      if (char.sourceText) {
+        sourceEl.classList.remove('hidden');
+        document.getElementById('profileSourceText').innerText = char.sourceText.slice(0, 150) + '...';
+      } else {
+        sourceEl.classList.add('hidden');
+      }
+
+      document.getElementById('profileModal').classList.remove('hidden');
+    }
+
+    function closeProfileModal() {
+      document.getElementById('profileModal').classList.add('hidden');
+    }
+
+    function triggerQuickNumber(num) {
+      document.getElementById('userInput').value = num.toString();
+      handleSendMessage();
+      toggleRichMenu(false);
+    }
+
+    function toggleRichMenu(forceState) {
+      const drawer = document.getElementById('richMenuDrawer');
+      if (forceState !== undefined) {
+        if (forceState) drawer.classList.remove('hidden');
+        else drawer.classList.add('hidden');
+      } else {
+        drawer.classList.toggle('hidden');
+      }
+    }
+
+    function clearCurrentChat() {
+      if (confirm(`確定要清空與「${characters.find(c => c.id === currentChatId)?.name}」的所有對話紀錄嗎？`)) {
+        chatHistories[currentChatId] = [];
+        const char = characters.find(c => c.id === currentChatId);
+        if (char) {
+          chatHistories[currentChatId].push({
+            role: 'assistant',
+            text: char.firstMessage || `對話已重置，請隨時發問！`,
+            time: formatCurrentTime()
+          });
+        }
+        saveStorage();
+        renderMessages();
+      }
+    }
+
+    // --- 10. STUDY REPORT EXPORT (訪談學習單小報) ---
+    function exportStudyNotes() {
+      const char = characters.find(c => c.id === currentChatId);
+      const history = chatHistories[currentChatId] || [];
+
+      if (history.length <= 1) {
+        alert('請先與歷史名人進行幾次對話交流，才能生成豐富的學習小報喔！');
+        return;
+      }
+
+      const reportContent = document.getElementById('reportContent');
+      let questionsAnswered = history.filter(h => h.role === 'user').length;
+
+      let historyHtml = history.map(h => `
+        <div class="p-2.5 rounded-lg ${h.role === 'user' ? 'bg-emerald-50 border border-emerald-100' : 'bg-slate-50 border border-slate-100'} mb-2">
+          <div class="font-bold text-[11px] ${h.role === 'user' ? 'text-emerald-700' : 'text-slate-700'} mb-1">
+            ${h.role === 'user' ? '👤 探索學子提問：' : `📜 ${char.name} 解答：`}
+          </div>
+          <div class="text-xs text-slate-800 whitespace-pre-wrap">${escapeHtml(h.text)}</div>
+        </div>
+      `).join('');
+
+      reportContent.innerHTML = `
+        <div class="border-b border-slate-200 pb-3 text-center">
+          <h2 class="text-lg font-bold text-slate-800 tracking-tight">🏆 Puti-AI 超時空歷史訪談小報</h2>
+          <p class="text-xs text-slate-500 mt-0.5">訪談對象：<span class="font-bold text-slate-800">${char.name}</span> (${char.era}) | 提問互動次數：${questionsAnswered} 次</p>
+        </div>
+        <div class="bg-amber-50 p-3 rounded-xl border border-amber-200 text-amber-900 text-xs">
+          <span class="font-bold">【先賢核心啟示】：</span>${char.coreThought}
+        </div>
+        <div>
+          <h3 class="font-bold text-xs text-slate-800 mb-2">【訪談精選實錄】：</h3>
+          <div class="max-h-72 overflow-y-auto pr-1">
+            ${historyHtml}
+          </div>
+        </div>
+        <div class="bg-indigo-50 p-3 rounded-xl border border-indigo-100">
+          <label class="block font-bold text-xs text-indigo-900 mb-1">【我的課堂心得與反思】：</label>
+          <textarea rows="3" placeholder="寫下你今天從這位歷史人物身上學到的思維與啟發..." class="w-full p-2 bg-white border border-indigo-200 rounded-lg text-xs outline-none focus:ring-1 focus:ring-indigo-400"></textarea>
+        </div>
+      `;
+
+      document.getElementById('reportModal').classList.remove('hidden');
+    }
+
+    function closeReportModal() {
+      document.getElementById('reportModal').classList.add('hidden');
+    }
+
+    function printStudyReport() {
+      window.print();
+    }
+
+    // --- 11. TTS SPEECH FUNCTION ---
+    function toggleSpeech() {
+      speechEnabled = !speechEnabled;
+      const icon = document.getElementById('speechIcon');
+      const btn = document.getElementById('btnSpeechToggle');
+      if (speechEnabled) {
+        btn.classList.add('text-lineGreen', 'bg-emerald-50');
+        btn.classList.remove('text-slate-400');
+        alert('🔊 已開啟先賢語音自動朗讀功能');
+      } else {
+        btn.classList.remove('text-lineGreen', 'bg-emerald-50');
+        btn.classList.add('text-slate-400');
+        if (window.speechSynthesis) window.speechSynthesis.cancel();
+      }
+    }
+
+    function speakText(text) {
+      if (!window.speechSynthesis) return;
+      window.speechSynthesis.cancel(); // Stop prior audio
+
+      // Strip symbols or 1~9 marks for cleaner speech
+      const clean = text.replace(/[*#]/g, '').slice(0, 300);
+      const utter = new SpeechSynthesisUtterance(clean);
+      utter.lang = 'zh-TW';
+      utter.rate = 1.0;
+      utter.pitch = 1.0;
+      window.speechSynthesis.speak(utter);
+    }
+
+    // --- 12. BACKUP & EXPORT ---
+    function exportCharacterData() {
+      const dataStr = JSON.stringify({ characters, chatHistories }, null, 2);
+      const blob = new Blob([dataStr], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `Puti-AI_超時空對話角色備份_${new Date().toISOString().slice(0, 10)}.json`;
+      a.click();
+      URL.revokeObjectURL(url);
+    }
+
+    // --- 13. SETTINGS & DYNAMIC MODEL PROBING ---
+    function openSettingsModal() {
+      document.getElementById('settingsModal').classList.remove('hidden');
+    }
+
+    function closeSettingsModal() {
+      document.getElementById('settingsModal').classList.add('hidden');
+    }
+
+    function syncCustomModelInput(type) {
+      if (type === 'gemini') {
+        const select = document.getElementById('geminiModelSelect');
+        const customInput = document.getElementById('geminiCustomModel');
+        if (select.value === 'custom') {
+          customInput.classList.remove('hidden');
+          customInput.focus();
+        } else {
+          customInput.classList.add('hidden');
+        }
+      } else if (type === 'groq') {
+        const select = document.getElementById('groqModelSelect');
+        const customInput = document.getElementById('groqCustomModel');
+        if (select.value === 'custom') {
+          customInput.classList.remove('hidden');
+          customInput.focus();
+        } else {
+          customInput.classList.add('hidden');
+        }
+      }
+    }
+
+    // Dynamic model discovery for Gemini API
+    async function fetchGeminiLiveModels() {
+      const apiKey = document.getElementById('geminiApiKey').value.trim();
+      const hint = document.getElementById('geminiModelHint');
+      const btn = document.getElementById('btnFetchGeminiModels');
+      if (!apiKey) {
+        alert('請先輸入 Gemini API Key 才能向 Google 查詢你帳號下的即時可用模型！');
+        return;
+      }
+
+      btn.innerHTML = `<i data-lucide="loader-2" class="w-2.5 h-2.5 animate-spin"></i> 查詢中...`;
+      hint.innerText = '正在向 Google Gemini API 查詢最新上架之模型清單...';
+
+      try {
+        const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models?key=${apiKey}`);
+        if (!res.ok) {
+          throw new Error(`HTTP ${res.status}`);
+        }
+        const data = await res.json();
+        if (data.models && data.models.length > 0) {
+          // Filter models that support generateContent
+          const validModels = data.models
+            .filter(m => m.supportedGenerationMethods && m.supportedGenerationMethods.includes('generateContent'))
+            .map(m => m.name.replace(/^models\//, ''));
+
+          if (validModels.length > 0) {
+            const select = document.getElementById('geminiModelSelect');
+            const currentSelected = select.value;
+            select.innerHTML = '';
+
+            // Put priority flash models first
+            validModels.sort((a, b) => {
+              if (a.includes('flash') && !b.includes('flash')) return -1;
+              if (!a.includes('flash') && b.includes('flash')) return 1;
+              return b.localeCompare(a);
+            });
+
+            validModels.forEach(m => {
+              const opt = document.createElement('option');
+              opt.value = m;
+              opt.innerText = m;
+              if (m === currentSelected || m === 'gemini-2.0-flash' || m === 'gemini-2.5-flash') opt.selected = true;
+              select.appendChild(opt);
+            });
+
+            // Add custom option
+            const customOpt = document.createElement('option');
+            customOpt.value = 'custom';
+            customOpt.innerText = '自訂輸入模型名稱...';
+            select.appendChild(customOpt);
+
+            hint.innerText = `✅ 成功取得 ${validModels.length} 個即時可用模型！已自動更新下拉選單。`;
+          }
+        }
+      } catch (err) {
+        console.error(err);
+        hint.innerText = `⚠️ 查詢失敗：${err.message}。可直接手動選取或自訂模型名稱。`;
+      } finally {
+        btn.innerHTML = `<i data-lucide="refresh-cw" class="w-2.5 h-2.5"></i> 動態更新模型清單`;
+        lucide.createIcons();
+      }
+    }
+
+    // Dynamic model discovery for Groq API
+    async function fetchGroqLiveModels() {
+      const apiKey = document.getElementById('groqApiKey').value.trim();
+      const hint = document.getElementById('groqModelHint');
+      const btn = document.getElementById('btnFetchGroqModels');
+      if (!apiKey) {
+        alert('請先輸入 Groq API Key 才能向 Groq 查詢你的可用模型！');
+        return;
+      }
+
+      btn.innerHTML = `<i data-lucide="loader-2" class="w-2.5 h-2.5 animate-spin"></i> 查詢中...`;
+      hint.innerText = '正在向 Groq API 查詢官方線上活躍模型...';
+
+      try {
+        const res = await fetch(`https://api.groq.com/openai/v1/models`, {
+          headers: { 'Authorization': `Bearer ${apiKey}` }
+        });
+        if (!res.ok) {
+          throw new Error(`HTTP ${res.status}`);
+        }
+        const data = await res.json();
+        if (data.data && data.data.length > 0) {
+          const activeModels = data.data
+            .filter(m => m.active !== false)
+            .map(m => m.id);
+
+          const select = document.getElementById('groqModelSelect');
+          select.innerHTML = '';
+
+          activeModels.forEach(m => {
+            const opt = document.createElement('option');
+            opt.value = m;
+            opt.innerText = m;
+            if (m === 'llama-3.1-8b-instant') opt.selected = true;
+            select.appendChild(opt);
+          });
+
+          // Add custom option
+          const customOpt = document.createElement('option');
+          customOpt.value = 'custom';
+          customOpt.innerText = '自訂輸入模型名稱...';
+          select.appendChild(customOpt);
+
+          hint.innerText = `✅ 成功取得 ${activeModels.length} 個 Groq 線上活躍模型！`;
+        }
+      } catch (err) {
+        console.error(err);
+        hint.innerText = `⚠️ 查詢失敗：${err.message}。建議使用 llama-3.1-8b-instant`;
+      } finally {
+        btn.innerHTML = `<i data-lucide="refresh-cw" class="w-2.5 h-2.5"></i> 動態更新模型清單`;
+        lucide.createIcons();
+      }
+    }
+
+    function updateProviderUI() {
+      const provider = getActiveProvider();
+      const geminiBlock = document.getElementById('geminiKeyBlock');
+      const groqBlock = document.getElementById('groqKeyBlock');
+      if (provider === 'gemini') {
+        geminiBlock.classList.remove('hidden');
+        groqBlock.classList.add('hidden');
+      } else {
+        geminiBlock.classList.add('hidden');
+        groqBlock.classList.remove('hidden');
+      }
+    }
+
+    function getActiveProvider() {
+      const checked = document.querySelector('input[name="apiProvider"]:checked');
+      return checked ? checked.value : 'gemini';
+    }
+
+    function saveApiSettings() {
+      const provider = getActiveProvider();
+      const geminiKey = document.getElementById('geminiApiKey').value.trim();
+      const groqKey = document.getElementById('groqApiKey').value.trim();
+      
+      let geminiModel = document.getElementById('geminiModelSelect').value;
+      if (geminiModel === 'custom') {
+        geminiModel = document.getElementById('geminiCustomModel').value.trim() || 'gemini-2.0-flash';
+      }
+
+      let groqModel = document.getElementById('groqModelSelect').value;
+      if (groqModel === 'custom') {
+        groqModel = document.getElementById('groqCustomModel').value.trim() || 'llama-3.1-8b-instant';
+      }
+
+      const level = document.getElementById('audienceLevel').value;
+
+      localStorage.setItem('puti_api_provider', provider);
+      localStorage.setItem('puti_gemini_key', geminiKey);
+      localStorage.setItem('puti_groq_key', groqKey);
+      localStorage.setItem('puti_gemini_model', geminiModel);
+      localStorage.setItem('puti_groq_model', groqModel);
+      localStorage.setItem('puti_audience_level', level);
+
+      updateEngineLabel();
+      closeSettingsModal();
+      alert(`✅ 設定成功儲存！\n目前使用引擎：${provider.toUpperCase()}\n所選模型：${provider === 'gemini' ? geminiModel : groqModel}`);
+    }
+
+    function updateEngineLabel() {
+      const provider = getActiveProvider();
+      const key = provider === 'gemini' 
+        ? localStorage.getItem('puti_gemini_key') 
+        : localStorage.getItem('puti_groq_key');
+      
+      const badge = document.getElementById('apiStatusBadge');
+      const engineLabel = document.getElementById('currentEngineLabel');
+
+      if (key) {
+        badge.innerText = `${provider.toUpperCase()} 已就緒`;
+        badge.classList.add('text-lineGreen');
+        engineLabel.innerText = `引擎: ${provider.toUpperCase()} (已連線)`;
+      } else {
+        badge.innerText = `填寫 API Key`;
+        badge.classList.remove('text-lineGreen');
+        engineLabel.innerText = `引擎: 未設定 Key`;
+      }
+    }
+
+    function handleInputKeyDown(e) {
+      if (e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault();
+        handleSendMessage();
+      }
+    }
+  </script>
+</body>
+</html>
