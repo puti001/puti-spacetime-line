@@ -814,6 +814,38 @@
         coreThought: '忠貞報國、海權戰略、屯田開疆。',
         suggestions: ['當初渡過黑水溝來台灣有多艱險？', '面對荷蘭人的大砲船艦您怎麼戰勝的？', '輸入 2 豐功偉業', '輸入 7 爭議與評價'],
         firstMessage: '吾乃延平王鄭成功。望向這片美麗之島「福爾摩沙」，當年將士浴血開拓之情景猶在眼前。後世學子，知曉台灣昔日之風雲變幻乎？吾願與汝暢談海疆風雲！'
+      },
+      {
+        id: 'en_translator',
+        name: '英文即時翻譯官 (English)',
+        era: '中英雙向互譯',
+        tag: 'builtin',
+        color: 'from-blue-600 to-cyan-600',
+        avatarBg: '#0284c7',
+        avatarText: 'EN',
+        status: '繁體中文 ⇄ English 即時雙向互譯，發訊息立刻翻譯！',
+        bio: '專業中英雙向口筆譯好友。輸入繁體中文立即翻成道地英文；輸入英文立即翻成優美繁體中文。',
+        coreThought: '精準、自然、道地的中英雙語轉換。',
+        suggestions: ['很高興認識你，今天天氣真好！', 'Can you explain the main idea?', '我想學習英文寫作', '輸入 1 了解翻譯指引'],
+        firstMessage: 'Hello! 我是你的「英文即時翻譯官」！🔤\n\n【使用方式超簡單】：\n👉 傳「繁體中文」給我 ➔ 我會直接翻譯成道地「英文」\n👉 傳「English」給我 ➔ 我會直接翻譯成流暢「繁體中文」\n\n歡迎隨時傳任何單字、句子或段落給我翻譯喔！',
+        isTranslator: true,
+        translateType: 'en'
+      },
+      {
+        id: 'ja_translator',
+        name: '日文即時翻譯官 (日本語)',
+        era: '中日雙向互譯',
+        tag: 'builtin',
+        color: 'from-rose-500 to-pink-600',
+        avatarBg: '#e11d48',
+        avatarText: '日',
+        status: '繁體中文 ⇄ 日本語 即時雙向互譯，發訊息秒速翻譯！',
+        bio: '專業中日雙向口筆譯好友。輸入繁體中文立即翻成道地日文（含羅馬拼音或假名）；輸入日文立即翻成自然繁體中文。',
+        coreThought: '精準、自然、道地的中日雙語轉換。',
+        suggestions: ['今天下雨了，我想吃熱騰騰的拉麵', 'こんにちは！今日はいい天気ですね', '這句話日文怎麼說最自然？', '輸入 1 了解翻譯指引'],
+        firstMessage: 'こんにちは！我是你的「日文即時翻譯官」！🗾\n\n【使用方式超簡單】：\n👉 傳「繁體中文」給我 ➔ 我會直接翻譯成道地「日文」（附假名/說明）\n👉 傳「日本語」給我 ➔ 我會直接翻譯成流暢「繁體中文」\n\n歡迎隨時傳任何日常對話或文章給我翻譯喔！',
+        isTranslator: true,
+        translateType: 'ja'
       }
     ];
 
@@ -934,6 +966,12 @@
       if (savedChars) {
         try {
           characters = JSON.parse(savedChars);
+          // Ensure new builtin translation friends exist even if user had older cache
+          DEFAULT_CHARACTERS.forEach(defChar => {
+            if (!characters.some(c => c.id === defChar.id)) {
+              characters.push(defChar);
+            }
+          });
         } catch(e) {
           characters = [...DEFAULT_CHARACTERS];
         }
@@ -1245,11 +1283,44 @@
         const char = characters.find(c => c.id === currentChatId);
         const audienceLevel = localStorage.getItem('puti_audience_level') || 'elementary';
         
-        let levelPrompt = '學生為國小中高年級，請用生動親切、淺顯易懂、富含啟發性與同理心的繁體中文回應。';
-        if (audienceLevel === 'junior') levelPrompt = '學生為國中/高中生，請融入更深刻的歷史背景、思想批判與跨領域分析。';
-        if (audienceLevel === 'scholar') levelPrompt = '以大師研討模式回應，展現古典文風、深厚學養與犀利的思辨力。';
+        let fullSystemInstruction = '';
 
-        let characterPrompt = `
+        if (char && char.isTranslator) {
+          // Special translation prompt for bidirectional translation
+          if (char.translateType === 'en') {
+            fullSystemInstruction = `你現在是 LINE 上的「英文即時翻譯官」。
+你的核心職責是提供精準、自然、道地的「繁體中文 ⇄ 英文」雙向互譯：
+
+【雙向互譯規則】：
+1. 若使用者輸入「繁體中文」：
+   - 請立即將其翻譯成道地自然的「英文」（English）。
+   - 若句子有不同的口語或正式說法，可附上 1~2 種道地例句。
+   - 附帶關鍵單字或片語的簡要提示，方便學習。
+2. 若使用者輸入「英文 (English)」：
+   - 請立即將其翻譯成優美流暢的「繁體中文」。
+   - 若為單字或片語，可補充詞性、發音提示與實用例句。
+3. 語氣像親切專業的 LINE 雙語好友，排版清晰美觀，不要冗長廢話。`;
+          } else if (char.translateType === 'ja') {
+            fullSystemInstruction = `你現在是 LINE 上的「日文即時翻譯官」。
+你的核心職責是提供精準、自然、道地的「繁體中文 ⇄ 日本語」雙向互譯：
+
+【雙向互譯規則】：
+1. 若使用者輸入「繁體中文」：
+   - 請立即將其翻譯成道地自然的「日文」（日本語）。
+   - 請務必標註漢字假名讀音（振假名或平假名）與羅馬拼音（Romaji），方便初學者朗讀！
+   - 可補充 1 種常用口語或禮貌體（敬語/常體）差異。
+2. 若使用者輸入「日文 (日本語)」：
+   - 請立即將其翻譯成優美流暢的「繁體中文」。
+   - 若為單字或慣用語，可補充讀音與在日常生活/動漫/旅行中的使用情境。
+3. 語氣像親切專業的 LINE 日語好友，排版清晰美觀，不要冗長廢話。`;
+          }
+        } else {
+          // General character roleplay
+          let levelPrompt = '學生為國小中高年級，請用生動親切、淺顯易懂、富含啟發性與同理心的繁體中文回應。';
+          if (audienceLevel === 'junior') levelPrompt = '學生為國中/高中生，請融入更深刻的歷史背景、思想批判與跨領域分析。';
+          if (audienceLevel === 'scholar') levelPrompt = '以大師研討模式回應，展現古典文風、深厚學養與犀利的思辨力。';
+
+          let characterPrompt = `
 【當前對話角色】
 姓名：${char.name}
 時代/背景：${char.era}
@@ -1260,8 +1331,8 @@ ${char.sourceText ? `【限定課文/文本參照（重要：請嚴格依據下�
 
 【學生年齡難度適配】：${levelPrompt}
 `;
-
-        const fullSystemInstruction = `${SYSTEM_ROLE_TEMPLATE}\n\n${characterPrompt}`;
+          fullSystemInstruction = `${SYSTEM_ROLE_TEMPLATE}\n\n${characterPrompt}`;
+        }
         
         // Build message payload (last 10 turns)
         const recentHistory = chatHistories[currentChatId].slice(-10);
