@@ -1052,10 +1052,8 @@
         if (msg.role === 'user') {
           // User Bubble (LINE Right Side Green Bubble)
           msgRow.innerHTML = `
-            <span class="text-[10px] text-slate-100/90 font-medium mb-1 drop-shadow-xs">${msg.time || ''}</span>
-            <div class="max-w-[78%] sm:max-w-[65%] bg-lineBubbleGreen text-slate-900 px-4 py-2.5 rounded-2xl rounded-tr-xs text-xs md:text-sm shadow-md whitespace-pre-wrap leading-relaxed select-text font-normal">
-              ${escapeHtml(msg.text)}
-            </div>
+            <span class="text-[10px] text-slate-100/90 font-medium mb-1 drop-shadow-xs shrink-0">${msg.time || ''}</span>
+            <div class="max-w-[78%] sm:max-w-[65%] bg-lineBubbleGreen text-slate-900 px-4 py-2.5 rounded-2xl rounded-tr-xs text-xs md:text-sm shadow-md whitespace-pre-wrap leading-relaxed select-text font-normal break-words">${escapeHtml(msg.text.trim())}</div>
           `;
         } else {
           // Assistant / Character Bubble (LINE Left Side White Bubble)
@@ -1064,14 +1062,12 @@
               ${char?.avatarText || char?.name?.charAt(0) || '友'}
             </div>
             <div class="max-w-[80%] sm:max-w-[70%] space-y-1">
-              <span class="text-[11px] font-bold text-white/90 drop-shadow-xs ml-0.5">${escapeHtml(char?.name || '歷史好友')}</span>
-              <div class="bg-lineBubbleWhite text-slate-800 px-4 py-2.5 rounded-2xl rounded-tl-xs text-xs md:text-sm shadow-md whitespace-pre-wrap leading-relaxed select-text border border-slate-100">
-                ${formatAssistantMessage(msg.text)}
-              </div>
+              <span class="text-[11px] font-bold text-white/90 drop-shadow-xs ml-0.5">${escapeHtml(char?.name || '好友')}</span>
+              <div class="bg-lineBubbleWhite text-slate-800 px-4 py-2.5 rounded-2xl rounded-tl-xs text-xs md:text-sm shadow-md whitespace-pre-wrap leading-relaxed select-text border border-slate-100 break-words">${formatAssistantMessage(msg.text.trim())}</div>
             </div>
-            <div class="flex flex-col items-start gap-1 self-end mb-1">
+            <div class="flex flex-col items-start gap-1 self-end mb-1 shrink-0">
               <span class="text-[10px] text-slate-100/90 font-medium drop-shadow-xs">${msg.time || ''}</span>
-              <button onclick="speakText('${escapeForJs(msg.text)}')" class="text-white/80 hover:text-white p-1 rounded hover:bg-black/10 transition" title="朗讀這段話">
+              <button onclick="speakText('${escapeForJs(msg.text.trim())}')" class="text-white/80 hover:text-white p-1 rounded hover:bg-black/10 transition" title="朗讀這段話">
                 <i data-lucide="volume-2" class="w-3.5 h-3.5"></i>
               </button>
             </div>
@@ -1085,8 +1081,9 @@
     }
 
     function formatAssistantMessage(text) {
-      // Basic markdown styling for numbered lists, bold text, etc.
-      let sanitized = escapeHtml(text);
+      if (!text) return '';
+      // Trim leading/trailing newlines or spaces to prevent top empty gap
+      let sanitized = escapeHtml(text.trim());
       // bold
       sanitized = sanitized.replace(/\*\*(.*?)\*\*/g, '<strong class="font-bold text-slate-900">$1</strong>');
       return sanitized;
