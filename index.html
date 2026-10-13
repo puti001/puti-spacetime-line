@@ -204,6 +204,14 @@
 
         <!-- Chat Header Actions -->
         <div class="flex items-center space-x-1">
+          <!-- Font Size Adjuster (大屏教學模式) -->
+          <div class="relative flex items-center bg-slate-100 rounded-lg p-0.5 border border-slate-200" title="調整字體大小 (適合教室大屏投影)">
+            <button onclick="changeFontSize('sm')" id="fontBtn-sm" class="font-size-btn px-2 py-1 text-xs font-medium rounded text-slate-600 hover:bg-white transition" title="標準字體">A</button>
+            <button onclick="changeFontSize('md')" id="fontBtn-md" class="font-size-btn px-2 py-1 text-sm font-bold rounded text-slate-800 bg-white shadow-xs transition" title="中字體">A</button>
+            <button onclick="changeFontSize('lg')" id="fontBtn-lg" class="font-size-btn px-2 py-1 text-base font-bold rounded text-slate-600 hover:bg-white transition" title="大字體 (教學推薦)">A</button>
+            <button onclick="changeFontSize('xl')" id="fontBtn-xl" class="font-size-btn px-2 py-1 text-lg font-black rounded text-lineGreen hover:bg-white transition" title="特大字體 (教室後排看得清)">A+</button>
+          </div>
+
           <!-- Clear Chat Messages -->
           <button onclick="clearCurrentChat()" class="p-2 text-slate-400 hover:text-amber-600 hover:bg-amber-50 rounded-lg transition" title="清除目前的對話紀錄">
             <i data-lucide="eraser" class="w-4 h-4"></i>
@@ -785,6 +793,37 @@
     let currentCategory = 'all';
     let speechEnabled = false;
     let isGenerating = false;
+    let currentFontSize = 'md'; // 'sm' | 'md' | 'lg' | 'xl'
+
+    function getBubbleFontClass() {
+      switch (currentFontSize) {
+        case 'sm': return 'text-xs md:text-sm';
+        case 'md': return 'text-sm md:text-base';
+        case 'lg': return 'text-base md:text-lg leading-relaxed';
+        case 'xl': return 'text-lg md:text-xl font-medium leading-loose';
+        default: return 'text-sm md:text-base';
+      }
+    }
+
+    function changeFontSize(size) {
+      currentFontSize = size;
+      localStorage.setItem('puti_chat_font_size', size);
+      updateFontSizeUI();
+      renderMessages();
+    }
+
+    function updateFontSizeUI() {
+      const sizes = ['sm', 'md', 'lg', 'xl'];
+      sizes.forEach(s => {
+        const btn = document.getElementById(`fontBtn-${s}`);
+        if (!btn) return;
+        if (s === currentFontSize) {
+          btn.className = 'font-size-btn px-2 py-1 font-bold rounded text-lineGreen bg-white shadow-xs transition';
+        } else {
+          btn.className = 'font-size-btn px-2 py-1 font-medium rounded text-slate-500 hover:bg-white transition';
+        }
+      });
+    }
 
     // Presets for textbook samples
     const SAMPLE_TEXTS = {
@@ -832,6 +871,8 @@
       const savedGeminiModel = localStorage.getItem('puti_gemini_model') || 'gemini-1.5-flash';
       const savedGroqModel = localStorage.getItem('puti_groq_model') || 'llama-3.1-8b-instant';
       const savedLevel = localStorage.getItem('puti_audience_level') || 'elementary';
+      currentFontSize = localStorage.getItem('puti_chat_font_size') || 'md';
+      updateFontSizeUI();
 
       const providerRadio = document.querySelector(`input[name="apiProvider"][value="${savedProvider}"]`);
       if (providerRadio) providerRadio.checked = true;
@@ -1044,6 +1085,7 @@
       container.appendChild(divider);
 
       const char = characters.find(c => c.id === currentChatId);
+      const fontClass = getBubbleFontClass();
 
       history.forEach((msg, idx) => {
         const msgRow = document.createElement('div');
@@ -1053,7 +1095,7 @@
           // User Bubble (LINE Right Side Green Bubble)
           msgRow.innerHTML = `
             <span class="text-[10px] text-slate-100/90 font-medium mb-1 drop-shadow-xs shrink-0">${msg.time || ''}</span>
-            <div class="max-w-[78%] sm:max-w-[65%] bg-lineBubbleGreen text-slate-900 px-4 py-2.5 rounded-2xl rounded-tr-xs text-xs md:text-sm shadow-md whitespace-pre-wrap leading-relaxed select-text font-normal break-words">${escapeHtml(msg.text.trim())}</div>
+            <div class="max-w-[85%] sm:max-w-[70%] bg-lineBubbleGreen text-slate-900 px-4 py-2.5 rounded-2xl rounded-tr-xs shadow-md whitespace-pre-wrap leading-relaxed select-text font-normal break-words ${fontClass}">${escapeHtml(msg.text.trim())}</div>
           `;
         } else {
           // Assistant / Character Bubble (LINE Left Side White Bubble)
@@ -1061,9 +1103,9 @@
             <div class="w-8 h-8 rounded-full flex items-center justify-center text-white font-bold text-xs shrink-0 self-start mt-0.5 shadow-sm" style="background-color: ${char?.avatarBg || '#10b981'};">
               ${char?.avatarText || char?.name?.charAt(0) || '友'}
             </div>
-            <div class="max-w-[80%] sm:max-w-[70%] space-y-1">
+            <div class="max-w-[85%] sm:max-w-[75%] space-y-1">
               <span class="text-[11px] font-bold text-white/90 drop-shadow-xs ml-0.5">${escapeHtml(char?.name || '好友')}</span>
-              <div class="bg-lineBubbleWhite text-slate-800 px-4 py-2.5 rounded-2xl rounded-tl-xs text-xs md:text-sm shadow-md whitespace-pre-wrap leading-relaxed select-text border border-slate-100 break-words">${formatAssistantMessage(msg.text.trim())}</div>
+              <div class="bg-lineBubbleWhite text-slate-800 px-4 py-2.5 rounded-2xl rounded-tl-xs shadow-md whitespace-pre-wrap leading-relaxed select-text border border-slate-100 break-words ${fontClass}">${formatAssistantMessage(msg.text.trim())}</div>
             </div>
             <div class="flex flex-col items-start gap-1 self-end mb-1 shrink-0">
               <span class="text-[10px] text-slate-100/90 font-medium drop-shadow-xs">${msg.time || ''}</span>
