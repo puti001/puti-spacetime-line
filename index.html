@@ -979,11 +979,15 @@
             const existing = parsed.find(c => c.id === defChar.id);
             if (!existing) {
               parsed.push(defChar);
-            } else if (defChar.id === 'en_translator' || defChar.id === 'ja_translator') {
+            } else {
+              // Always sync latest firstMessage, status, era, etc. for builtin characters
               existing.name = defChar.name;
               existing.avatarText = defChar.avatarText;
               existing.status = defChar.status;
               existing.era = defChar.era;
+              existing.firstMessage = defChar.firstMessage;
+              existing.bio = defChar.bio;
+              existing.coreThought = defChar.coreThought;
             }
           });
           characters = parsed;
@@ -993,7 +997,6 @@
       } else {
         characters = [...DEFAULT_CHARACTERS];
       }
-      saveStorage();
 
       // Load Histories
       const savedHistory = localStorage.getItem('puti_chat_histories');
@@ -1005,19 +1008,34 @@
         }
       }
 
-      // Ensure each character has default first message if empty
+      // Upgrade existing first messages if they don't have the new hint or still have old 1~9 prompt
+      const hintPattern = '（輸入 0 看[快速求知]選單）';
       characters.forEach(c => {
+        // Skip translators
+        if (c.isTranslator) return;
+
         if (!chatHistories[c.id] || chatHistories[c.id].length === 0) {
           chatHistories[c.id] = [
             {
               role: 'assistant',
-              text: c.firstMessage || `你好！我是${c.name}。很高興穿越時空與你相遇，你想聊些什麼呢？（輸入 0 看[快速求知]選單）`,
+              text: c.firstMessage || `你好！我是${c.name}。很高興穿越時空與你相遇，你想聊些什麼呢？${hintPattern}`,
               time: formatCurrentTime()
             }
           ];
+        } else {
+          // If the first message is assistant's greeting, update or append hint
+          const firstMsg = chatHistories[c.id][0];
+          if (firstMsg && firstMsg.role === 'assistant') {
+            if (c.firstMessage && (firstMsg.text.includes('1~9') || !firstMsg.text.includes(hintPattern))) {
+              firstMsg.text = c.firstMessage;
+            } else if (!firstMsg.text.includes(hintPattern)) {
+              firstMsg.text = firstMsg.text.trim() + hintPattern;
+            }
+          }
         }
       });
 
+      saveStorage();
       updateEngineLabel();
     }
 
