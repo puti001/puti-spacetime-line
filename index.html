@@ -142,8 +142,8 @@
         <!-- Tab categories -->
         <div class="flex space-x-1 text-xs">
           <button onclick="switchCategory('all')" id="tab-all" class="cat-tab flex-1 py-1 px-2 font-medium rounded-md text-lineGreen bg-lineGreenLight border border-lineGreen/30 transition text-center">全部 (<span id="count-all">0</span>)</button>
-          <button onclick="switchCategory('builtin')" id="tab-builtin" class="cat-tab flex-1 py-1 px-2 font-medium rounded-md text-slate-600 hover:bg-slate-100 transition text-center">經典先賢</button>
-          <button onclick="switchCategory('custom')" id="tab-custom" class="cat-tab flex-1 py-1 px-2 font-medium rounded-md text-slate-600 hover:bg-slate-100 transition text-center">課文/自訂</button>
+          <button onclick="switchCategory('builtin')" id="tab-builtin" class="cat-tab flex-1 py-1 px-2 font-medium rounded-md text-slate-600 hover:bg-slate-100 transition text-center">名人</button>
+          <button onclick="switchCategory('custom')" id="tab-custom" class="cat-tab flex-1 py-1 px-2 font-medium rounded-md text-slate-600 hover:bg-slate-100 transition text-center">自訂</button>
         </div>
       </div>
 
@@ -156,11 +156,11 @@
       <div class="p-2.5 border-t border-slate-200 bg-slate-50 flex items-center justify-between">
         <div class="flex items-center space-x-2">
           <div class="w-8 h-8 rounded-full bg-lineGreen text-white flex items-center justify-center font-bold text-xs shadow-sm">
-            學
+            我
           </div>
           <div>
             <div class="text-xs font-bold text-slate-700 flex items-center gap-1">
-              <span>探索學子</span>
+              <span>我</span>
               <span class="text-[10px] text-slate-400 font-normal">(現代時空)</span>
             </div>
             <div class="text-[10px] text-slate-400 truncate max-w-[150px]" id="currentEngineLabel">使用引擎: 未設定</div>
@@ -1088,7 +1088,7 @@
             <div class="w-11 h-11 rounded-full flex items-center justify-center text-white font-bold text-sm shadow-sm" style="background-color: ${c.avatarBg || '#10b981'};">
               ${c.avatarText || c.name.charAt(0)}
             </div>
-            ${c.tag !== 'builtin' ? '<span class="absolute -top-1 -right-1 bg-amber-500 text-white text-[9px] px-1 rounded-full font-bold">課文</span>' : ''}
+            ${c.tag !== 'builtin' ? '<span class="absolute -top-1 -right-1 bg-amber-500 text-white text-[9px] px-1 rounded-full font-bold">自訂</span>' : ''}
           </div>
           <div class="flex-1 min-w-0">
             <div class="flex items-center justify-between mb-0.5">
@@ -2141,7 +2141,7 @@ ${text}
       if (!char) return;
 
       document.getElementById('profileName').innerText = char.name;
-      document.getElementById('profileEra').innerText = `${char.era} ${char.tag === 'custom' ? '(課文/自訂角色)' : ''}`;
+      document.getElementById('profileEra').innerText = `${char.era} ${char.tag === 'custom' ? '(自訂角色)' : ''}`;
       document.getElementById('profileStatusQuote').innerText = `「${char.status}」`;
       document.getElementById('profileBio').innerText = char.bio || '暫無生平資料';
       document.getElementById('profileCoreThought').innerText = char.coreThought || '暫無核心思想紀錄';
