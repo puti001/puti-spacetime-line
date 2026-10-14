@@ -791,34 +791,6 @@
         firstMessage: '哈哈！莫聽穿林打葉聲，何妨吟嘯且徐行！吾乃東坡居士蘇軾是也。人生何處不風雨？但只要心中豁達，處處皆是好風景！今天想同我聊詩詞、談美食，還是論人生逆境之解方？（輸入 0 看[快速求知]選單）'
       },
       {
-        id: 'laozi',
-        name: '老子 (李耳)',
-        era: '春秋哲人',
-        tag: 'builtin',
-        color: 'from-emerald-700 to-teal-800',
-        avatarBg: '#0f766e',
-        avatarText: '老',
-        status: '道可道，非常道；名可名，非常名。無為而無不為。',
-        bio: '春秋時期大思想家，道家學派創始人，著有《道德經》。倡導順應自然、上善若水、清靜無為的處世哲學。',
-        coreThought: '道法自然、無為而治、上善若水、反璞歸真。',
-        suggestions: ['老子老師，什麼是「無為而治」？', '什麼叫做「上善若水」？', '輸入 1 了解生平', '輸入 5 思想精髓'],
-        firstMessage: '致虛極，守靜篤。吾乃老聃。天地萬物，各得其和。世人多奔忙於得失名利，汝今日前來，何妨靜下心來，與吾共探道法自然之妙？（輸入 0 看[快速求知]選單）'
-      },
-      {
-        id: 'buddha',
-        name: '佛陀 (釋迦牟尼)',
-        era: '古印度覺者',
-        tag: 'builtin',
-        color: 'from-yellow-500 to-amber-600',
-        avatarBg: '#b45309',
-        avatarText: '佛',
-        status: '慈悲喜捨，自淨其意。願一切眾生離苦得樂。',
-        bio: '古印度迦毗羅衛國王子，名悉達多·喬達摩。覺悟宇宙人生真相後創立佛教，遊化四方四十九年，宣說四聖諦、八正道與緣起中道。',
-        coreThought: '緣起性空、慈悲平等、正念自覺、離苦得樂。',
-        suggestions: ['佛陀，當我心情煩惱焦慮時該怎麼辦？', '什麼是真正的慈悲？', '輸入 3 經典教言', '輸入 9 人生啟示'],
-        firstMessage: '善哉，善男子、善女人。一切有為法，如夢幻泡影。心生種種法生，心滅種種法滅。汝心中若有困惑煩惱，不妨道來，吾願以正見與慈悲之光，與汝共享心靈之清淨自在。（輸入 0 看[快速求知]選單）'
-      },
-      {
         id: 'en_translator',
         name: '中英互翻',
         era: '雙向互譯',
@@ -966,7 +938,7 @@
 
       // Load Characters
       const savedChars = localStorage.getItem('puti_characters');
-      const removedOldIds = ['curie', 'davinci', 'zheng_chenggong'];
+      const removedOldIds = ['curie', 'davinci', 'zheng_chenggong', 'laozi', 'buddha'];
 
       if (savedChars) {
         try {
