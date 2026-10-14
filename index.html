@@ -331,7 +331,7 @@
 
         <form id="chatForm" onsubmit="handleSendMessage(event)" class="flex items-end space-x-2">
           <!-- Toggle Quick Menu Button -->
-          <button type="button" onclick="toggleRichMenu()" class="p-2.5 text-slate-500 hover:text-lineGreen hover:bg-emerald-50 rounded-xl transition shrink-0" title="展開/收合求知選單">
+          <button type="button" id="btnToggleRichMenu" onclick="toggleRichMenu()" class="p-2.5 text-slate-500 hover:text-lineGreen hover:bg-emerald-50 rounded-xl transition shrink-0" title="展開/收合求知選單">
             <i data-lucide="layout-grid" class="w-5 h-5"></i>
           </button>
 
@@ -801,26 +801,10 @@
         status: '繁體中文 ⇄ 英文 雙向互譯',
         bio: '專業中英雙向口筆譯好友。輸入中文直接翻英文，輸入英文直接翻中文。',
         coreThought: '精準、自然、道地的中英雙向互譯。',
-        suggestions: ['很高興認識你，今天天氣真好！', 'Can you explain the main idea?', '我想學習英文寫作', '輸入 1 了解翻譯指引'],
+        suggestions: ['很高興認識你，今天天氣真好！', 'Can you explain the main idea?', '這句話用英文怎麼說最自然？', '我想學習英文寫作'],
         firstMessage: '你好！我是你的「中英互翻」小助手！🔤\n\n👉 傳中文給我 ➔ 直接翻譯成英文\n👉 傳英文給我 ➔ 直接翻譯成繁體中文\n\n歡迎隨時傳任何單字或句子給我喔！',
         isTranslator: true,
         translateType: 'en'
-      },
-      {
-        id: 'ja_translator',
-        name: '中日互翻',
-        era: '雙向互譯',
-        tag: 'builtin',
-        color: 'from-rose-500 to-pink-600',
-        avatarBg: '#e11d48',
-        avatarText: '日',
-        status: '繁體中文 ⇄ 日文 雙向互譯',
-        bio: '專業中日雙向口筆譯好友。輸入中文直接翻日文（附發音），輸入日文直接翻中文。',
-        coreThought: '精準、自然、道地的中日雙向互譯。',
-        suggestions: ['今天下雨了，我想吃熱騰騰的拉麵', 'こんにちは！今日はいい天気ですね', '這句話日文怎麼說最自然？', '輸入 1 了解翻譯指引'],
-        firstMessage: 'こんにちは！我是你的「中日互翻」小助手！🗾\n\n👉 傳中文給我 ➔ 直接翻譯成日文（附平假名/讀音）\n👉 傳日文給我 ➔ 直接翻譯成繁體中文\n\n歡迎隨時傳任何日文或中文給我喔！',
-        isTranslator: true,
-        translateType: 'ja'
       }
     ];
 
@@ -938,7 +922,7 @@
 
       // Load Characters
       const savedChars = localStorage.getItem('puti_characters');
-      const removedOldIds = ['curie', 'davinci', 'zheng_chenggong', 'laozi', 'buddha'];
+      const removedOldIds = ['curie', 'davinci', 'zheng_chenggong', 'laozi', 'buddha', 'ja_translator'];
 
       if (savedChars) {
         try {
@@ -983,8 +967,24 @@
       // Upgrade existing first messages if they don't have the new hint or still have old 1~9 prompt
       const hintPattern = '（輸入 0 看[快速求知]選單）';
       characters.forEach(c => {
-        // Skip translators
-        if (c.isTranslator) return;
+        // For translators: ensure clean first message without 0 or 1~9 hints
+        if (c.isTranslator) {
+          if (!chatHistories[c.id] || chatHistories[c.id].length === 0) {
+            chatHistories[c.id] = [
+              {
+                role: 'assistant',
+                text: c.firstMessage,
+                time: formatCurrentTime()
+              }
+            ];
+          } else {
+            const firstMsg = chatHistories[c.id][0];
+            if (firstMsg && firstMsg.role === 'assistant' && (firstMsg.text.includes('1~9') || firstMsg.text.includes('快速求知'))) {
+              firstMsg.text = c.firstMessage;
+            }
+          }
+          return;
+        }
 
         if (!chatHistories[c.id] || chatHistories[c.id].length === 0) {
           chatHistories[c.id] = [
@@ -1027,8 +1027,8 @@
       container.innerHTML = '';
 
       let list = characters.filter(c => {
-        if (currentCategory === 'builtin') return c.tag === 'builtin';
-        if (currentCategory === 'custom') return c.tag !== 'builtin';
+        if (currentCategory === 'builtin') return c.tag === 'builtin' && !c.isTranslator;
+        if (currentCategory === 'custom') return c.tag !== 'builtin' && !c.isTranslator;
         return true;
       });
 
@@ -1158,6 +1158,18 @@
         };
         suggestionsEl.appendChild(btn);
       });
+
+      // Control Quick Menu Drawer & Button for Translator vs Normal character
+      const btnQuickMenu = document.getElementById('btnToggleRichMenu');
+      const inputEl = document.getElementById('userInput');
+      if (char.isTranslator) {
+        if (btnQuickMenu) btnQuickMenu.classList.add('hidden');
+        toggleRichMenu(false);
+        if (inputEl) inputEl.placeholder = '請輸入要翻譯的繁體中文或英文...';
+      } else {
+        if (btnQuickMenu) btnQuickMenu.classList.remove('hidden');
+        if (inputEl) inputEl.placeholder = '輸入想問歷史名人的問題，或輸入 0 看[快速求知]選單...';
+      }
 
       // Render Messages
       renderMessages();
@@ -1310,8 +1322,9 @@
       renderMessages();
       saveStorage();
 
-      // If user typed '0', instantly open the rich menu and reply with quick options
-      if (text === '0') {
+      // If user typed '0' (for non-translator characters), instantly open the rich menu and reply with quick options
+      const activeChar = characters.find(c => c.id === currentChatId);
+      if (text === '0' && (!activeChar || !activeChar.isTranslator)) {
         toggleRichMenu(true);
         setTimeout(() => {
           const char = characters.find(c => c.id === currentChatId);
