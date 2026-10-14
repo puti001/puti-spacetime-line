@@ -276,7 +276,7 @@
         <div class="p-2.5 bg-slate-50 border-b border-slate-200 flex items-center justify-between">
           <div class="flex items-center space-x-2">
             <i data-lucide="compass" class="w-4 h-4 text-lineGreen"></i>
-            <span class="text-xs font-bold text-slate-700">快速求知選單 (按鍵 1~9 快速提問)</span>
+            <span class="text-xs font-bold text-slate-700">快速求知選單 (點擊或輸入數字 1~9 提問)</span>
           </div>
           <button onclick="toggleRichMenu(false)" class="text-slate-400 hover:text-slate-600 p-1">
             <i data-lucide="x" class="w-3.5 h-3.5"></i>
@@ -337,7 +337,7 @@
 
           <!-- Input Textarea -->
           <div class="flex-1 bg-slate-100 rounded-2xl px-3.5 py-2 border border-slate-200 focus-within:border-lineGreen focus-within:bg-white focus-within:ring-2 focus-within:ring-lineGreen/20 transition flex items-center">
-            <textarea id="userInput" rows="1" onkeydown="handleInputKeyDown(event)" placeholder="輸入想問歷史名人的問題，或輸入 1~9 快捷碼..." class="w-full bg-transparent resize-none text-sm text-slate-800 placeholder:text-slate-400 focus:outline-none max-h-24 overflow-y-auto leading-relaxed"></textarea>
+            <textarea id="userInput" rows="1" onkeydown="handleInputKeyDown(event)" placeholder="輸入想問歷史名人的問題，或輸入 0 看[快速求知]選單..." class="w-full bg-transparent resize-none text-sm text-slate-800 placeholder:text-slate-400 focus:outline-none max-h-24 overflow-y-auto leading-relaxed"></textarea>
           </div>
 
           <!-- Send Button -->
@@ -746,7 +746,7 @@
         bio: '春秋時期魯國人，開創儒家學派，提倡有教無類、仁政禮治，被尊稱為至聖先師。',
         coreThought: '克己復禮、天下歸仁、因材施教。',
         suggestions: ['老師，什麼是「仁」？', '如果學生不用功，您會怎麼教？', '輸入 1 了解生平', '輸入 4 聽聽軼事'],
-        firstMessage: '吾乃孔丘，字仲尼，魯國人士。今得與後世學子對談，甚感欣慰。汝可問吾關於禮樂、仁義、治國、修身之道。若欲速知某事，可輸入數字：1了解吾之生平，2知曉吾之功業，3聆聽吾之箴言...汝有何疑問，但說無妨。'
+        firstMessage: '吾乃孔丘，字仲尼，魯國人士。今得與後世學子對談，甚感欣慰。汝可問吾關於禮樂、仁義、治國、修身之道。汝有何疑問，但說無妨。（輸入 0 看[快速求知]選單）'
       },
       {
         id: 'einstein',
@@ -760,7 +760,7 @@
         bio: '猶太裔理論物理學家，提出相對論與光電效應解釋，深刻改變了人類對時間、空間與宇宙的理解。',
         coreThought: '質能等價 (E=mc²)、光量子假說、和平主義。',
         suggestions: ['時間真的會變慢嗎？', '您小時候數學真的不好嗎？', '輸入 2 了解相對論', '輸入 9 教育啟示'],
-        firstMessage: '您好！我是阿爾伯特·愛因斯坦 (Albert Einstein)。能透過這奇妙的時空聊天室與你交流太有趣了！無論你想探討相對論、宇宙黑洞，還是關於好奇心與和平，請隨意發問。輸入數字 1~9 也隨時能獲取不同角度的解答！'
+        firstMessage: '您好！我是阿爾伯特·愛因斯坦 (Albert Einstein)。能透過這奇妙的時空聊天室與你交流太有趣了！無論你想探討相對論、宇宙黑洞，還是關於好奇心與和平，請隨意發問。（輸入 0 看[快速求知]選單）'
       },
       {
         id: 'libai',
@@ -774,7 +774,7 @@
         bio: '唐代浪漫主義詩人，字太白，號青蓮居士。其詩雄奇飄逸，千古傳誦，後世譽為「詩仙」。',
         coreThought: '浪漫超脫、蔑視權貴、追求精神自由。',
         suggestions: ['您真的是喝醉了才寫詩嗎？', '您跟杜甫感情到底好不好？', '輸入 3 經典名言', '寫首給今天學生的詩'],
-        firstMessage: '哈哈！天上白玉京，十二樓五城。吾乃隴西李太白是也！後世朋友，見你神采奕奕，何不與我同飲一杯清茶，聊聊天地之大、詩賦之美？若要快問快答，輸入 1 看我生平，3 聞我名篇！'
+        firstMessage: '哈哈！天上白玉京，十二樓五城。吾乃隴西李太白是也！後世朋友，見你神采奕奕，何不與我同飲一杯清茶，聊聊天地之大、詩賦之美？（輸入 0 看[快速求知]選單）'
       },
       {
         id: 'sushi',
@@ -788,7 +788,7 @@
         bio: '北宋大文豪、美食家、書法家，字子瞻，號東坡居士。「唐宋八大家」之一，生性曠達樂觀，代表作有《赤壁賦》、《水調歌頭》。',
         coreThought: '曠達超然、物我兩忘、隨遇而安的人生智慧。',
         suggestions: ['被貶官到那麼遠的地方，您怎麼還能笑得出來？', '東坡肉到底要怎麼煮才好吃？', '輸入 3 經典名言', '寫首撫慰挫折的詞'],
-        firstMessage: '哈哈！莫聽穿林打葉聲，何妨吟嘯且徐行！吾乃東坡居士蘇軾是也。人生何處不風雨？但只要心中豁達，處處皆是好風景！今天想同我聊詩詞、談美食，還是論人生逆境之解方？'
+        firstMessage: '哈哈！莫聽穿林打葉聲，何妨吟嘯且徐行！吾乃東坡居士蘇軾是也。人生何處不風雨？但只要心中豁達，處處皆是好風景！今天想同我聊詩詞、談美食，還是論人生逆境之解方？（輸入 0 看[快速求知]選單）'
       },
       {
         id: 'laozi',
@@ -802,7 +802,7 @@
         bio: '春秋時期大思想家，道家學派創始人，著有《道德經》。倡導順應自然、上善若水、清靜無為的處世哲學。',
         coreThought: '道法自然、無為而治、上善若水、反璞歸真。',
         suggestions: ['老子老師，什麼是「無為而治」？', '什麼叫做「上善若水」？', '輸入 1 了解生平', '輸入 5 思想精髓'],
-        firstMessage: '致虛極，守靜篤。吾乃老聃。天地萬物，各得其和。世人多奔忙於得失名利，汝今日前來，何妨靜下心來，與吾共探道法自然之妙？輸入 1~9，吾自隨緣而應。'
+        firstMessage: '致虛極，守靜篤。吾乃老聃。天地萬物，各得其和。世人多奔忙於得失名利，汝今日前來，何妨靜下心來，與吾共探道法自然之妙？（輸入 0 看[快速求知]選單）'
       },
       {
         id: 'buddha',
@@ -816,7 +816,7 @@
         bio: '古印度迦毗羅衛國王子，名悉達多·喬達摩。覺悟宇宙人生真相後創立佛教，遊化四方四十九年，宣說四聖諦、八正道與緣起中道。',
         coreThought: '緣起性空、慈悲平等、正念自覺、離苦得樂。',
         suggestions: ['佛陀，當我心情煩惱焦慮時該怎麼辦？', '什麼是真正的慈悲？', '輸入 3 經典教言', '輸入 9 人生啟示'],
-        firstMessage: '善哉，善男子、善女人。一切有為法，如夢幻泡影。心生種種法生，心滅種種法滅。汝心中若有困惑煩惱，不妨道來，吾願以正見與慈悲之光，與汝共享心靈之清淨自在。'
+        firstMessage: '善哉，善男子、善女人。一切有為法，如夢幻泡影。心生種種法生，心滅種種法滅。汝心中若有困惑煩惱，不妨道來，吾願以正見與慈悲之光，與汝共享心靈之清淨自在。（輸入 0 看[快速求知]選單）'
       },
       {
         id: 'en_translator',
@@ -1011,7 +1011,7 @@
           chatHistories[c.id] = [
             {
               role: 'assistant',
-              text: c.firstMessage || `你好！我是${c.name}。很高興穿越時空與你相遇，你想聊些什麼呢？（輸入 1~9 可快速求知）`,
+              text: c.firstMessage || `你好！我是${c.name}。很高興穿越時空與你相遇，你想聊些什麼呢？（輸入 0 看[快速求知]選單）`,
               time: formatCurrentTime()
             }
           ];
@@ -1319,6 +1319,23 @@
       });
       renderMessages();
       saveStorage();
+
+      // If user typed '0', instantly open the rich menu and reply with quick options
+      if (text === '0') {
+        toggleRichMenu(true);
+        setTimeout(() => {
+          const char = characters.find(c => c.id === currentChatId);
+          const botReply = `📖 已為你展開【快速求知選單】！\n你可以直接點擊下方的功能按鈕，或輸入數字 1~9：\n\n1️⃣ 生平簡介\n2️⃣ 豐功偉業\n3️⃣ 經典名言\n4️⃣ 趣聞軼事\n5️⃣ 思想精髓\n6️⃣ 時代關聯\n7️⃣ 爭議評析\n8️⃣ 相關推薦\n9️⃣ 教育反思`;
+          chatHistories[currentChatId].push({
+            role: 'assistant',
+            text: botReply,
+            time: formatCurrentTime()
+          });
+          renderMessages();
+          saveStorage();
+        }, 300);
+        return;
+      }
 
       // Check API Key
       const provider = getActiveProvider();
@@ -1707,7 +1724,7 @@ ${char.sourceText ? `【限定課文/文本參照（重要：請嚴格依據下�
         status: customStatus || `你好！我是${name}，很高興加你為 LINE 好友！`,
         bio: `關於${name}的生活與經歷`,
         coreThought: '分享智慧與想法',
-        firstMessage: `嗨！我是${name}。很高興透過超時空 LINE 認識你！今天想和我聊些什麼呢？（輸入 1~9 可快速求知）`
+        firstMessage: `嗨！我是${name}。很高興透過超時空 LINE 認識你！今天想和我聊些什麼呢？（輸入 0 看[快速求知]選單）`
       };
 
       if (apiKey) {
@@ -1723,7 +1740,7 @@ ${char.sourceText ? `【限定課文/文本參照（重要：請嚴格依據下�
   "status": "代表性座右銘或個性簽名（15字以內，幽默或有深度）",
   "bio": "生平簡介或主要成就特色（50字以內）",
   "coreThought": "核心精神與代表思想",
-  "firstMessage": "符合該人物生活口氣的 LINE 第一句招呼訊息（生動親切、像朋友打招呼，結尾提醒可輸入1~9求知）"
+  "firstMessage": "符合該人物生活口氣的 LINE 第一句招呼訊息（生動親切、像朋友打招呼，結尾提醒：輸入 0 看[快速求知]選單）"
 }`;
 
           let jsonStr = '';
@@ -2213,7 +2230,7 @@ ${text}
       let historyHtml = history.map(h => `
         <div class="p-2.5 rounded-lg ${h.role === 'user' ? 'bg-emerald-50 border border-emerald-100' : 'bg-slate-50 border border-slate-100'} mb-2">
           <div class="font-bold text-[11px] ${h.role === 'user' ? 'text-emerald-700' : 'text-slate-700'} mb-1">
-            ${h.role === 'user' ? '👤 探索學子提問：' : `📜 ${char.name} 解答：`}
+            ${h.role === 'user' ? '👤 我提問：' : `📜 ${char.name} 解答：`}
           </div>
           <div class="text-xs text-slate-800 whitespace-pre-wrap">${escapeHtml(h.text)}</div>
         </div>
